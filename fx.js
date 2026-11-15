@@ -4,7 +4,7 @@
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = a => a[Math.floor(Math.random() * a.length)];
 
-  // Keine Vibration: iPhone-Web-Apps unterstützen sie nicht. tap/haptic bleiben als leere Funktionen,
+  // Keine Vibration: Web-Apps auf dem Handy unterstützen sie nicht zuverlässig. tap/haptic bleiben als leere Funktionen,
   // damit die vielen Aufrufstellen nicht angefasst werden müssen.
   const tap = () => {};
   const haptic = () => {};

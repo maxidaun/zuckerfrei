@@ -675,6 +675,8 @@
   const shownAmount = earned => isSave() ? earned : Math.max(0, goalAmount() - earned);
   const goalReached = earned => goalAmount() > 0 && earned >= goalAmount();
   const payoutName = () => (state.payout || '').trim();
+  // Text sicher in HTML einsetzen (z. B. Inhalte aus importierten Backups)
+  const escH = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const WD = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
   const WD_LONG = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
   const PRAISE = ['Stark! 💪', 'Du rockst das! ✨', 'Wieder ein Tag geschafft 🎉', 'So stolz auf dich ❤️', 'Zucker hat keine Chance 😎', 'Weiter so! 🌟'];
@@ -944,7 +946,7 @@
     const pn = payoutName();
     $('spTitle').textContent = pn ? `${pn}-Zeit!` : 'Belohnung eintragen!';
     $('spSteps').innerHTML = pn
-      ? `<li>Öffne <b>${pn.replace(/</g, '&lt;')}</b></li><li>Trag ${isSave() ? 'die Belohnung' : 'eine <b>Rückzahlung</b>'} über den Betrag ein</li><li>Komm zurück und tipp unten auf ✓</li>`
+      ? `<li>Öffne <b>${escH(pn)}</b></li><li>Trag ${isSave() ? 'die Belohnung' : 'eine <b>Rückzahlung</b>'} über den Betrag ein</li><li>Komm zurück und tipp unten auf ✓</li>`
       : `<li>Tragt ${isSave() ? 'die Belohnung' : 'die Rückzahlung'} bei euch ein (z. B. in eurer Abrechnungs-App)</li><li>Dann unten auf ✓ tippen</li>`;
     $('spDone').textContent = pn ? `✓ In ${pn} eingetragen` : '✓ Eingetragen';
     $('spText').innerHTML = `${isSave() ? 'Du hast' : 'Du darfst'} <b>${euro(sum)}</b> ${isSave() ? 'verdient' : 'deiner Schulden abziehen'} (Woche ${sp.map(x => `${fmtDate(x.mon)}–${fmtDate(addDays(x.mon, 6))}`).join(', ')}).`;
@@ -971,8 +973,8 @@
     feuer:     { acc: '🔥', fx: 'fire',    say: ['{n} Tage in Folge! Wir brennen! 🔥', 'Unaufhaltsam! {n}er-Serie!', 'Niemand stoppt uns – {n} Tage!', 'Heiß, heißer, du! 🔥', 'Diese Serie ist legendär!', 'Ich brauch Sonnencreme, so heiß läuft\'s! 🧴'] },
     traurig:   { acc: '',   fx: 'tear',    say: ['Schon okay… morgen schaffen wir\'s zusammen. 💛', 'Ich hab dich trotzdem lieb.', 'Ein Tag ist nur ein Tag. Wir machen weiter!', 'Kopf hoch, Krone richten 👑', 'Ich nehm dich in den Huf 🫂', 'Fehler gehören dazu. Aufgeben nicht!', 'Morgen glitzern wir wieder ✨'] },
     party:     { acc: '🥳', fx: 'party',   say: ['WOCHE GESCHAFFT! Party! 🎉', 'Die {e} gehören dir! 💰', 'Ich tanze für dich! 💃', 'Konfetti überall! 🎊', 'Ich hab den ganzen Stall eingeladen! 🎉', 'Wer hat die Woche gerockt? DU!'] },
-    chillen:   { acc: '😎', fx: 'none',    say: ['Sonntag! Heute wird gechillt.', 'Füße hoch – morgen startet eine neue Woche.', 'Sonntag zählt nicht. Genieß es! 🍰', 'Heute nur Netflix und Glitzer 📺', 'Sonntags bin ich ein Faultier-Einhorn 🦥', 'Kraft tanken für Montag!'] },
-    weihnacht: { acc: '🎄', fx: 'snow',    say: ['Gebäckmodus aktiv! Max. {c} Plätzchen 🍪', 'Ho ho ho – zuckerfrei durch den Advent!', 'Ein, zwei Plätzchen sind okay. Drei nicht! 🍪', 'Ich hab Lebkuchen gesehen… und widerstanden! 🎄', 'Jingle Bells, zuckerfrei! 🔔', 'Plätzchen zählen ist mein neues Hobby 🍪'] },
+    chillen:   { acc: '😎', fx: 'none',    say: ['Sonntag! Heute wird gechillt.', 'Füße hoch – morgen startet eine neue Woche.', 'Sonntag zählt nicht. Genieß es! 🍰', 'Heute nur Sofa, Serien und Glitzer 📺', 'Sonntags bin ich ein Faultier-Einhorn 🦥', 'Kraft tanken für Montag!'] },
+    weihnacht: { acc: '🎄', fx: 'snow',    say: ['Gebäckmodus aktiv! Max. {c} Plätzchen 🍪', 'Ho ho ho – zuckerfrei durch den Advent!', 'Ein, zwei Plätzchen sind okay. Drei nicht! 🍪', 'Ich hab Lebkuchen gesehen… und widerstanden! 🎄', 'Lalala, zuckerfrei durch den Advent! 🔔', 'Plätzchen zählen ist mein neues Hobby 🍪'] },
     schuldenfrei: { acc: '👑', fx: 'party', say: ['ZIEL ERREICHT! Du bist eine Legende! 👑', 'Wir haben es geschafft!!!'] }
   };
   const PET = ['Uiii, nicht so stürmisch 😏', 'Mehr davon und ich werd Einhorny 🫣', 'Ey, Pfoten weg vom Horn! …okay, noch einmal.', 'Bro, ich bin kein Touchscreen. Doch, bin ich.', 'Digga, das kitzelt 😂', 'Hihi, das kitzelt!', 'Mehr Streicheleinheiten! 🦄', '{Du bist die Beste!|Du bist der Beste!|Du bist einfach top!}', '*glitzer glitzer*', 'Hast du heute schon Wasser getrunken? 💧', 'Ich glaub an dich!', 'Neeeigh! 🦄'];
@@ -1143,7 +1145,7 @@
     'Ich hab mehr Glitzer als du Willenskraft. …Spaß, du bist ein Biest 💪', 'Mach mal Check-in, sonst gibt\'s Pferdeküsse 💋🐴',
     'Junge Junge, wer hat dir erlaubt, so gut zu sein?', 'Bin heute bisschen toxic: Zucker ist dein Ex. Nicht zurückschreiben.',
     '{Slay. Einfach nur slay. 💅|Stabil. Einfach nur stabil. 😎|Slay. Einfach nur slay. ✨}', 'Mies am Abliefern, nicht am Naschen. So muss das.', 'Gönn dir… Wasser. 💧 Ja ich weiß, enttäuschend.',
-    'Die Haribo-Gang hat Angst vor dir. Zu Recht.', 'Ich bin ein Einhorn, kein Babysitter. …okay, bisschen schon.',
+    'Die Gummibärchen-Gang hat Angst vor dir. Zu Recht.', 'Ich bin ein Einhorn, kein Babysitter. …okay, bisschen schon.',
     'Bruh. Ein Donut hat dir gerade zugezwinkert. Block den.', 'Real talk: du bist krasser als jeder Energy-Drink.',
     'Mies verliebt in deine Disziplin, ich sag\'s wie\'s ist 😳', 'Dein Süßhunger hat Hausverbot. Ich bin der Türsteher.',
     'Nicht labern, abliefern. Du machst beides. Respekt.', 'Läuft bei dir. Also nicht der Zucker. Der läuft weg.',
@@ -1287,7 +1289,7 @@
     // Sammlung: Sticker & Gutscheine
     const stk = Object.entries(state.stickers || {});
     const wv = state.wonVouchers || [];
-    const allSt = STICKERS.concat(stk.map(([e]) => e).filter(e => !STICKERS.includes(e)));
+    const allSt = STICKERS.concat(stk.map(([e]) => e).filter(e => !STICKERS.includes(e) && e.length <= 8 && !/[<>&"']/.test(e)));
     html += `<div class="sub">🌟 Sticker-Album <span class="muted">(${stk.length}/${STICKERS.length} gefunden · 5× = Mama 🎀 · 10× = Oma 👓 · 20× = Uroma 👑 · 35× = Ur-Uroma 🌈)</span></div>
       <div class="sticker-grid">${allSt.map(e => {
         const n = (state.stickers || {})[e] || 0;
@@ -1299,7 +1301,7 @@
           <span class="sg-bar"><i style="width:${pct}%"></i></span>
           <small class="sg-next">${nx ? `${n}/${nx.at} → ${nx.n} ${nx.acc}` : 'MAX 🏆'}</small></div>`;
       }).join('')}</div>`;
-    if (wv.length) html += `<div class="sub">🎟️ Gewonnene Gutscheine</div>${wv.map((v, i) => `<label class="vch ${v.used ? 'used' : ''}"><input type="checkbox" data-vch="${i}" ${v.used ? 'checked' : ''}> 🎟️ ${v.t} <small>(${fmtDate(parse(v.d))})</small></label>`).join('')}`;
+    if (wv.length) html += `<div class="sub">🎟️ Gewonnene Gutscheine</div>${wv.map((v, i) => `<label class="vch ${v.used ? 'used' : ''}"><input type="checkbox" data-vch="${i}" ${v.used ? 'checked' : ''}> 🎟️ ${escH(v.t)} <small>(${fmtDate(parse(v.d))})</small></label>`).join('')}`;
     if (!bossHistory().length) html += '<div class="sub">⚔️ Boss-Trophäen</div><div class="empty">Besiegte Bosse landen hier.</div>';
     if (!(state.wonVouchers || []).length) html += '<div class="sub">🎟️ Gutscheine</div><div class="empty">Gutscheine gewinnst du selten im Rubbellos & Co. – falls welche eingetragen sind 😏</div>';
     el.innerHTML = html;
@@ -1800,12 +1802,12 @@
   function renderVouchers() {
     const list = vouchers();
     $('vList').innerHTML = list.length
-      ? list.map((v, i) => `<div class="v-item"><span>🎟️ ${v.replace(/</g, '&lt;')}</span><button class="v-del" data-vdel="${i}" aria-label="Löschen">✕</button></div>`).join('')
+      ? list.map((v, i) => `<div class="v-item"><span>🎟️ ${escH(v)}</span><button class="v-del" data-vdel="${i}" aria-label="Löschen">✕</button></div>`).join('')
       : '<div class="empty" style="font-size:13px">Noch keine Gutscheine – füg unten welche hinzu.</div>';
     $('vList').querySelectorAll('[data-vdel]').forEach(b => b.onclick = () => {
       state.voucherList = vouchers().slice(); state.voucherList.splice(Number(b.dataset.vdel), 1); save(); renderVouchers(); FX.tap(); toast('Gutschein entfernt');
     });
-    $('vSugg').innerHTML = V_SUGG.filter(x => !list.includes(x)).map(x => `<button class="v-chip" data-vs="${x}">＋ ${x}</button>`).join('');
+    $('vSugg').innerHTML = V_SUGG.filter(x => !list.includes(x)).map(x => `<button class="v-chip" data-vs="${escH(x)}">＋ ${escH(x)}</button>`).join('');
     $('vSugg').querySelectorAll('[data-vs]').forEach(b => b.onclick = () => addVoucher(b.dataset.vs));
   }
   function addVoucher(txt) {
@@ -1819,7 +1821,7 @@
     switch (key) {
       case 'mega': return { key, emoji: '🦄', title: 'EINHORN-REGEN!', sub: 'Mega-Modus freigeschaltet' };
       case 'joker': return { key, emoji: '🃏', title: 'Bonus-Joker!', sub: '+1 Joker für schwache Tage' };
-      case 'gutschein': { const v = vouchers(); return v.length ? { key, emoji: '🎟️', title: 'Gutschein!', sub: pick(v).replace(/</g, '&lt;') } : makePrize('sticker'); }
+      case 'gutschein': { const v = vouchers(); return v.length ? { key, emoji: '🎟️', title: 'Gutschein!', sub: pick(v) } : makePrize('sticker'); }
       case 'spruch': return { key, emoji: '💬', title: 'Einhorny-Weisheit', sub: pick(CHEEKY.concat(TIPS)) };
       case 'sticker': {
         const n = Number(weighted({ 1: 55, 2: 30, 3: 15 }));
@@ -1884,7 +1886,7 @@
         title: `${stickerName(up.e, up.t)} freigeschaltet!`, amount: TIERS[up.t].acc + ' Neue Stufe',
         text: `Du hast jetzt ${state.stickers[up.e]}× ${up.e}. ${TIERS[up.t + 1] ? `Ab ${TIERS[up.t + 1].at}× kommt die ${stickerName(up.e, up.t + 1)} ${TIERS[up.t + 1].acc}` : 'Höchste Stufe erreicht – Legende! 🏆'}<br>` + (opts.text || '') });
       reward({ ...opts, scene: p.key === 'mega' ? 'einhornflug' : p.rarity === 'legend' ? 'goldregen' : opts.scene, emoji: p.emoji, title: p.title,
-        text: `<b>${p.sub}</b><br>` + (opts.text || '') });
+        text: `<b>${escH(p.sub)}</b><br>` + (opts.text || '') });
       if (p.key === 'mega') setTimeout(() => FX.megaUnicorns(), 300);
     };
     const ctx = gameCtx(ymd(today()), []);
@@ -1983,7 +1985,7 @@
           <div>Jede Woche wartet ein <b>Boss</b> ⚔️ – jeder zuckerfreie Tag ist ein Treffer</div>
         </div>`,
       () => `<div class="ob-e">🔔</div><h2 class="ob-h">Abend-Erinnerung</h2>
-        <p class="ob-p">Damit du den Check-in nicht vergisst: In der <b>Kurzbefehle</b>-App unter <b>Automation → Tageszeit</b> (z. B. 21:30, täglich, „Sofort ausführen“) die Aktion <b>„Mitteilung anzeigen“</b> anlegen.</p>
+        <p class="ob-p">Damit du den Check-in nicht vergisst: Stell dir am Handy eine <b>tägliche Erinnerung</b> für den Abend (z. B. 21:30) – mit der Erinnerungs- oder Automations-App deines Handys.</p>
         <p class="ob-p">Alles lässt sich später unter ⚙️ <b>Mehr</b> ändern – und dort ab und zu ein Backup sichern 💾</p>`
     ];
     let i = 0;
@@ -2028,7 +2030,7 @@
     return true;
   }
 
-  // ================= Serie (Duolingo-Stil) =================
+  // ================= Serie (wie bei Lern-Apps) =================
   // Zählt zuckerfreie Tage Mo–Sa am Stück; Sonntage pausieren, Joker schützen die Serie wie ein Streak-Freeze.
   const MILESTONES = [3, 7, 14, 21, 30, 50, 75, 100, 150, 200];
   const prevCountable = d => { let x = addDays(d, -1); if (idx(x) === 6) x = addDays(x, -1); return x; };
@@ -2369,7 +2371,7 @@
     bc.hidden = !due;
     if (!due) return;
     bc.innerHTML = `<div class="label">💾 Backup</div>
-      <div class="hint" style="margin-top:0">${state.lastBackup ? `Letztes Backup: ${new Date(state.lastBackup).toLocaleDateString('de-DE')}.` : 'Noch kein Backup gemacht.'} Sichere deinen Fortschritt in „Dateien“ oder schick ihn dir selbst – falls das iPhone mal Daten verliert.</div>
+      <div class="hint" style="margin-top:0">${state.lastBackup ? `Letztes Backup: ${new Date(state.lastBackup).toLocaleDateString('de-DE')}.` : 'Noch kein Backup gemacht.'} Sichere deinen Fortschritt in „Dateien“ oder schick ihn dir selbst – falls das Handy mal Daten verliert.</div>
       <div class="btns" style="grid-template-columns:1fr;margin-top:12px"><button class="big primary" data-bk>Jetzt sichern 💾</button></div>`;
     bc.querySelector('[data-bk]').onclick = shareBackup;
   }

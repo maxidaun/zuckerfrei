@@ -234,8 +234,8 @@ button.q-bed { background: none; padding: 0; }
 .lvl { background: linear-gradient(100deg, var(--accent) 40%, #ffd76a 50%, var(--accent) 60%); background-size: 250% 100%;
        -webkit-background-clip: text; background-clip: text; color: transparent; animation: textShine 5s ease-in-out infinite; }
 
-/* ---------- Schmale Bildschirme (z. B. iPhone SE, 320 px) ---------- */
-body { overflow-x: clip; }   /* clip statt hidden: macht body nicht zum Scroll-Container (iOS) */
+/* ---------- Schmale Bildschirme (320 px) ---------- */
+body { overflow-x: clip; }   /* clip statt hidden: macht body nicht zum Scroll-Container (mobile Browser) */
 main > * { min-width: 0; }
 .hero { grid-template-columns: 112px minmax(0, 1fr); }
 .bubble, .say, .q-taunt, .q-msg, .hint, .status, .nudge { min-width: 0; overflow-wrap: anywhere; }
@@ -282,7 +282,7 @@ main > * { min-width: 0; }
   .game-head { padding: 14px 14px 4px; } #gameBody { padding-left: 14px; padding-right: 14px; }
 }
 
-/* ---------- iPhone-Feinschliff (iPhone 13: 390 × 844, Notch + Home-Balken) ---------- */
+/* ---------- Handy-Feinschliff (390 × 844, Notch + Home-Balken) ---------- */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { -webkit-touch-callout: none; }
 button, .fi-btn, .dl-w, .card-s, .sw-btn, .scratch, .wheel { touch-action: manipulation; }
@@ -541,7 +541,7 @@ html.locked, html.locked body { overflow: hidden; }
 .ask-btns .small { padding: 12px 6px; }
 .ask-btns .big { padding: 12px 6px; }
 
-/* ---------- Serie (Duolingo-Stil) ---------- */
+/* ---------- Serie ---------- */
 .topbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 2px 4px 0; }
 .tb-streak { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 99px; background: var(--card); box-shadow: var(--shadow);
              font-size: 18px; font-weight: 900; color: var(--muted); }
@@ -643,7 +643,7 @@ details.tab-open > summary { display: none; }
 #collCard .sub:first-of-type { margin-top: 18px; }
 .toast { bottom: calc(96px + env(safe-area-inset-bottom)); }
 
-/* ---------- iPhone-13-Finish ---------- */
+/* ---------- Handy-Finish ---------- */
 .banner { padding: 14px 16px; }
 .banner .label { margin-bottom: 4px; }
 .banner .today-q { font-size: 17px; margin-bottom: 4px; }
@@ -750,7 +750,7 @@ main { touch-action: pan-y; }   /* vertikal scrollen bleibt nativ, horizontal ge
 /* Demo-Leiste nicht über offene Fenster legen */
 html.locked .demo-bar { display: none; }
 
-/* ---------- Check-ins ohne Scrollen (iPhone 13: 390 × 797) ---------- */
+/* ---------- Check-ins ohne Scrollen (390 × 797) ---------- */
 /* Klassisch */
 .sheet { padding-top: 16px; }
 .sheet .today-q { font-size: 19px; margin: 0 0 6px; }
@@ -787,7 +787,7 @@ html.locked .demo-bar { display: none; }
 .sheet-head .label { margin: 0; }
 .sheet .howto[hidden] { display: none; }
 
-/* ---------- Abstände vereinheitlicht (iPhone 13) ---------- */
+/* ---------- Abstände vereinheitlicht ---------- */
 /* Fenster-Kopf: Titel → Tipp → Fortschritt → Inhalt mit gleichmäßigem Luftraum */
 .game-head { padding: 14px 18px 10px; }
 .howto { margin: 0 18px 12px; padding: 10px 12px; line-height: 1.4; }

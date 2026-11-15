@@ -20,12 +20,12 @@
     'Tagebuch 📔': '„nix ✓“ wenn nichts · „+“ klebt einen Sticker pro Stück. Jede Zeile ausfüllen.',
     'Regenbogen-Regler 🌈': 'Einhorny auf die richtige Zahl ziehen – oder antippen, wenn sie schon stimmt.',
     'Ballon-Pop 🎈': 'Tipp den Ballon mit deiner Anzahl an. ↩︎ = eine Frage zurück.',
-    'Wer wird Zuckerfrei-Millionär? 💰': 'Antwort antippen, dann nochmal tippen zum Einloggen. ↩︎ = zurück.',
+    'Die große Zuckerfrei-Quizshow 💰': 'Antwort antippen, dann nochmal tippen zum Einloggen. ↩︎ = zurück.',
     'Wählscheibe ☎️': 'Tipp auf das Loch mit deiner Zahl – die Scheibe wählt von selbst. Danach mit −/+ korrigieren.',
     'Zielscheibe 🎯': 'Tipp in den Ring mit deiner Zahl: Mitte = 0, nach außen mehr. Danach kannst du mit −/+ korrigieren.',
     'Rubbellos 🎟️': 'Mit dem Finger über das goldene Feld rubbeln.',
     'Glücksrad 🎡': 'Über das Rad wischen oder auf „Drehen“ tippen.',
-    'Geschenkbox 🎁': 'Schnell auf die Box tippen (oder mit „Schütteln“ das iPhone schütteln), bis der Balken voll ist.',
+    'Geschenkbox 🎁': 'Schnell auf die Box tippen (oder mit „Schütteln“ das Handy schütteln), bis der Balken voll ist.',
     'Kapselautomat 🥚': 'Griff drehen, dann die Kapsel 3× antippen. Darin steckt ein Sammel-Einhorn – oder ein Joker!',
     'Dein Tag 📝': 'Kurz prüfen, ggf. Joker wählen, dann speichern. ✏️ öffnet die Zähler zum Korrigieren.',
     'Wochen-Boss ⚔️': 'Tippen zum Weiter.',
@@ -65,7 +65,7 @@
       const c = onCancel; close(c);
     };
   }
-  // Fortschrittsbalken oben (wie bei Duolingo)
+  // Fortschrittsbalken oben
   function progress(k, n) {
     const p = $('gameProg');
     if (k == null) { p.hidden = true; return; }
@@ -95,7 +95,7 @@
   const options = c => c.choice ? c.choice.map(o => ({ v: o.v, t: o.label })) : [0, 1, 2, 3, 4, 5].map(v => ({ v, t: v === 5 ? '5+' : String(v) }));
 
   const REACT_OK = ['{Ehrenfrau 💅|Ehrenmann 💪|Ehrenmensch ✨}', 'Sauber! ✨', 'Stark 💪', 'Zucker? Nie gehört 😎', '{Slay 💅|Stabil 😎|Slay ✨}', 'So muss das!', 'Bombe! 💣', 'Läuft 😎',
-    '{Zucker ist so letztes Jahr 💅|Zucker ist so letztes Jahr 😎|Zucker ist so letztes Jahr ✨}', 'Die Haribo-Aktie fällt 📉😎', 'Die Gummibärchen weinen gerade 🐻😭', 'Zuckerfrei und trotzdem süß 😏'];
+    '{Zucker ist so letztes Jahr 💅|Zucker ist so letztes Jahr 😎|Zucker ist so letztes Jahr ✨}', 'Die Gummibärchen-Aktie fällt 📉😎', 'Die Gummibärchen weinen gerade 🐻😭', 'Zuckerfrei und trotzdem süß 😏'];
   const REACT_KO = ['Hmm… okay 😬', 'Notiert. Ehrlich währt am längsten 🫡', 'Autsch 🙈', 'Passiert. Weiter geht\'s 💛', 'Danke für die Ehrlichkeit 🫶',
     'Uff. Die Gummibärchen feiern gerade Party 🐻🎉', 'Ich sag\'s keinem. Fast keinem. 🤐', 'Der Zuckerdämon lacht. Noch. 😈', 'Okay, Naschkatze 🐱🍬'];
   const REACT_TRACK = ['Notiert 📝', 'Nice 💧', 'Gute Wahl!', 'Alles klar 👍', 'Top 👌'];
@@ -557,7 +557,7 @@
   // ================= 7) Quiz-Show =================
   const LADDER = [50, 100, 300, 1000, 5000, 32000, 1000000];
   function quiz(ctx, done) {
-    sequential(ctx, 'Wer wird Zuckerfrei-Millionär? 💰', 'Antwort antippen – dann <b>nochmal tippen</b> zum Einloggen.', 'sq-quiz', (stage, c, answer, i) => {
+    sequential(ctx, 'Die große Zuckerfrei-Quizshow 💰', 'Antwort antippen – dann <b>nochmal tippen</b> zum Einloggen.', 'sq-quiz', (stage, c, answer, i) => {
       const L = ['A', 'B', 'C', 'D'];
       const opts = c.choice ? c.choice.map(o => ({ v: o.v, t: o.label })) : [{ v: 0, t: '0' }, { v: 1, t: '1' }, { v: 2, t: '2' }, { v: 3, t: '3 oder mehr', more: true }];
       stage.innerHTML = `<div class="quiz-lad">Frage ${i + 1} · um <b>${LADDER[Math.min(i, LADDER.length - 1)].toLocaleString('de-DE')}</b> Glitzerpunkte ✨</div>
