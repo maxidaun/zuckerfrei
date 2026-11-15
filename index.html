@@ -1947,7 +1947,9 @@
 
   // ================= Begrüßungs-Rundgang (erster Start) =================
   function onboarding(force) {
-    if (!force && (state.onboarded || Object.keys(state.days).length)) return false;
+    // Wiederholen, solange noch kein Deal (Betrag pro Woche) eingetragen ist – z. B. nach Update von einer alten Version
+    const needsDeal = !(Number(state.perWeek) > 0);
+    if (!force && !needsDeal && (state.onboarded || Object.keys(state.days).length)) return false;
     if (['sheet', 'game', 'reward', 'payPop'].some(id => !$(id).hidden)) return false;
     const q = v => String(v ?? '').replace(/"/g, '&quot;');
     let mode = state.goalMode || 'debt';
