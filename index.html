@@ -1,0 +1,2655 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zuckerfrei</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zuckerfrei">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fff7f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1517" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="stylesheet" href="games.css">
+<style>
+  :root {
+    --s1: #3f7fd9;
+    --s2: #e07b1f;
+    --bg: #fff7f2;
+    --card: #ffffff;
+    --text: #2b1f22;
+    --muted: #8a7a7e;
+    --line: #f1e3dc;
+    --accent: #e8577e;
+    --accent-soft: #fde4ea;
+    --good: #2f9e6b;
+    --good-soft: #dcf3e7;
+    --bad: #c9475b;
+    --bad-soft: #fbe1e5;
+    --gold: #e0a400;
+    --gold-soft: #fff1c7;
+    --shadow: 0 6px 24px rgba(120, 60, 70, .08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --s1: #6fa3ff;
+      --s2: #ff9d47;
+      --bg: #1c1517;
+      --card: #2a2023;
+      --text: #f6ecee;
+      --muted: #ad9ca1;
+      --line: #3b2e32;
+      --accent: #ff7a9c;
+      --accent-soft: #46262f;
+      --good: #5bd39b;
+      --good-soft: #1f3a2d;
+      --bad: #ff8395;
+      --bad-soft: #472630;
+      --gold: #ffcb3d;
+      --gold-soft: #463a1b;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Roboto, sans-serif;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    -webkit-user-select: none; user-select: none;
+  }
+  main { max-width: 480px; margin: 0 auto; display: grid; gap: 14px; }
+  h1 { font-size: 15px; font-weight: 600; color: var(--muted); margin: 4px 0 0; letter-spacing: .02em; }
+  .card { background: var(--card); border-radius: 22px; padding: 18px; box-shadow: var(--shadow); }
+  .label { font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+
+  /* Schuldenstand */
+  .debt-num { font-size: 46px; font-weight: 800; letter-spacing: -.02em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .debt-sub { color: var(--muted); font-size: 15px; margin-top: 4px; }
+  .bar { height: 12px; background: var(--accent-soft); border-radius: 99px; overflow: hidden; margin: 16px 0 8px; }
+  .bar > div { height: 100%; background: linear-gradient(90deg, var(--accent), #ffa26b); border-radius: 99px; transition: width .6s ease; }
+  .bar-legend { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* Heute */
+  .today-q { font-size: 21px; font-weight: 700; margin: 0 0 14px; line-height: 1.25; }
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  button { font: inherit; border: 0; cursor: pointer; color: inherit; }
+  .big { padding: 16px 10px; border-radius: 16px; font-size: 16px; font-weight: 700; background: var(--line); transition: transform .1s; }
+  .big:active { transform: scale(.97); }
+  .big.yes.on { background: var(--good); color: #fff; }
+  .big.no.on { background: var(--bad); color: #fff; }
+  .hint { font-size: 14px; color: var(--muted); margin-top: 12px; line-height: 1.4; }
+  .nudge { background: var(--gold-soft); border-radius: 14px; padding: 12px 14px; font-size: 15px; margin-top: 12px; }
+  .nudge button { background: none; padding: 0; font-weight: 700; color: var(--accent); }
+
+  /* Woche */
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .day { display: grid; justify-items: center; gap: 6px; padding: 8px 0 10px; border-radius: 14px; background: none; }
+  .day .wd { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .day .dot { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; font-weight: 700;
+              background: var(--line); color: var(--muted); }
+  .day.yes .dot { background: var(--good); color: #fff; }
+  .day.no .dot { background: var(--bad); color: #fff; }
+  .day.today .wd { color: var(--accent); }
+  .day.today .dot { box-shadow: 0 0 0 3px var(--accent); }
+  .day.sat .dot { border: 2px dashed var(--gold); }
+  .day.sat.yes .dot { border: 0; background: var(--gold); }
+  .day.free .dot { background: none; font-size: 20px; }
+  .day[disabled] { cursor: default; }
+  .day.future { opacity: .45; }
+  .status { margin-top: 14px; padding: 12px 14px; border-radius: 14px; font-size: 15px; line-height: 1.4; background: var(--accent-soft); }
+  .status.good { background: var(--good-soft); }
+  .status.bad { background: var(--bad-soft); }
+  .status.gold { background: var(--gold-soft); }
+  .rules { font-size: 13px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+
+  /* Verlauf */
+  .hist { list-style: none; margin: 0; padding: 0; }
+  .hist li { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); font-size: 15px; }
+  .hist li:first-child { border-top: 0; }
+  .hist .amt { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hist .amt.zero { color: var(--muted); font-weight: 500; }
+  .empty { color: var(--muted); font-size: 15px; }
+
+  /* Einstellungen */
+  details summary { list-style: none; font-size: 15px; font-weight: 600; color: var(--muted); cursor: pointer; }
+  details summary::-webkit-details-marker { display: none; }
+  .field { display: grid; gap: 6px; margin-top: 14px; font-size: 14px; color: var(--muted); }
+  select, input, textarea { font: inherit; font-size: 16px; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); width: 100%; -webkit-user-select: text; user-select: text; }
+  textarea { min-height: 90px; font-size: 13px; font-family: ui-monospace, Menlo, monospace; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .small { padding: 10px 14px; border-radius: 12px; background: var(--line); font-size: 14px; font-weight: 600; }
+  .small.danger { color: var(--bad); }
+
+  .toast { position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); transform: translate(-50%, 140%);
+           background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 99px; font-size: 15px; font-weight: 600;
+           transition: transform .3s ease; max-width: calc(100% - 32px); text-align: center; z-index: 10; }
+  .toast.show { transform: translate(-50%, 0); }
+
+  .split { background: var(--good-soft); }
+  .split .today-q { margin-bottom: 6px; }
+  .split .btns { margin-top: 14px; }
+  .split a.big { text-decoration: none; text-align: center; color: inherit; background: var(--card); }
+  .big.primary { background: var(--accent); color: #fff; width: 100%; }
+  .checkin-done { display: flex; gap: 10px; flex-wrap: wrap; margin: -4px 0 12px; }
+  .pill { padding: 6px 12px; border-radius: 99px; background: var(--line); font-size: 14px; font-weight: 600; }
+  .pill.ok { background: var(--good-soft); }
+  .pill.ko { background: var(--bad-soft); }
+  .linkbtn { background: none; padding: 0; font-size: 15px; font-weight: 600; color: var(--accent); }
+
+  /* Check-in-Blatt */
+  .overlay { position: fixed; inset: 0; background: rgba(20, 10, 14, .45); display: flex; align-items: flex-end; justify-content: center; z-index: 15;
+             animation: fadeIn .2s ease; }
+  .overlay[hidden] { display: none; }
+  .sheet { background: var(--card); width: 100%; max-width: 480px; border-radius: 26px 26px 0 0;
+           padding: 22px 18px max(22px, env(safe-area-inset-bottom)); animation: slideUp .25s ease; }
+  .counter { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--line); }
+  .counter .what { font-size: 16px; font-weight: 600; line-height: 1.3; }
+  .counter .what small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+  .stepper { display: flex; align-items: center; gap: 12px; }
+  .stepper button { width: 42px; height: 42px; border-radius: 50%; background: var(--line); font-size: 22px; font-weight: 700; }
+  .stepper .n { min-width: 28px; text-align: center; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .stepper .n.zero { color: var(--good); }
+  .stepper .n.over { color: var(--bad); }
+  .choice { display: flex; gap: 6px; }
+  .choice button { padding: 10px 12px; border-radius: 12px; background: var(--line); font-size: 14px; font-weight: 700; white-space: nowrap;
+                   transition: transform .12s cubic-bezier(.2, 1.8, .4, 1), background .2s, color .2s; }
+  .choice button:active { transform: scale(.9); }
+  .choice button.good { background: var(--good); color: #fff; }
+  .choice button.bad { background: var(--bad); color: #fff; }
+  .counter.todo .choice button { background: var(--gold-soft); }
+  .joker-zone { margin-top: 10px; padding: 12px; border-radius: 14px; background: var(--gold-soft); animation: rowIn .4s cubic-bezier(.2, 1.4, .4, 1) both; }
+  .jz-title { font-size: 15px; font-weight: 800; }
+  .jz-title span { font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 6px; }
+  .jz-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .jz-chip { padding: 9px 14px; border-radius: 99px; background: var(--card); font-size: 14px; font-weight: 700; border: 2px dashed var(--gold);
+             transition: transform .12s cubic-bezier(.2, 1.8, .4, 1); }
+  .jz-chip:active { transform: scale(.9); }
+  .jz-chip.on { background: linear-gradient(135deg, #fff3c4, #ffd76a); color: #5a3d00; border-style: solid; }
+  .jz-chip.flip { animation: cardFlip .7s ease; }
+  .jz-chip:disabled { opacity: .4; }
+  #sheetSave.joker { background: linear-gradient(135deg, #f0b400, #e08a00); }
+  .xmas { background: linear-gradient(135deg, #e8f6ee, #fdecef); }
+  @media (prefers-color-scheme: dark) { .xmas { background: linear-gradient(135deg, #1f3a2d, #46262f); } }
+  .stepper .n { border-radius: 10px; padding: 2px 4px; cursor: pointer; }
+  .counter.todo .stepper .n { background: var(--gold-soft); animation: nudgeN 1.4s ease-in-out infinite; }
+  .counter.todo .what::after { content: ' · prüfen'; color: var(--gold); font-size: 13px; font-weight: 700; }
+  @keyframes nudgeN { 50% { transform: scale(1.12); } }
+  .big.primary:disabled { opacity: .5; }
+  .big.primary.sweet { background: var(--good); }
+  .sheet-actions { display: grid; gap: 10px; margin-top: 16px; }
+  .sheet-actions .row { justify-content: center; margin-top: 0; }
+
+  /* Belohnung */
+  .reward { align-items: center; padding: 24px; }
+  .reward-box { background: var(--card); border-radius: 28px; padding: 30px 22px 22px; text-align: center; max-width: 380px; width: 100%;
+                animation: pop .5s cubic-bezier(.2, 1.6, .4, 1); }
+  .reward-emoji { font-size: 84px; line-height: 1; }
+  .reward-box h2 { margin: 14px 0 6px; font-size: 26px; }
+  .reward-box p { margin: 0 0 20px; color: var(--muted); font-size: 16px; line-height: 1.45; }
+  .reward-box .amount { font-size: 40px; font-weight: 800; color: var(--good); margin: 4px 0 10px; }
+  .streak { display: inline-block; margin: 2px 0 10px; padding: 6px 14px; border-radius: 99px; background: #ff9a3d22; color: #ff8a1f; font-weight: 800; font-size: 16px; }
+  .streak:empty, .debtroll:empty { display: none; }
+  .debtroll { font-size: 15px; color: var(--muted); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+  .debtroll b { color: var(--text); font-size: 20px; }
+  .reward-emoji { position: relative; display: inline-block; }
+  .a-pop { animation: aPop .7s cubic-bezier(.2, 1.8, .4, 1) both, aWiggle 1s ease-in-out .7s 2; }
+  .a-spin { animation: aSpin 1.2s cubic-bezier(.2, 1.2, .3, 1) both; }
+  .a-heartbeat { animation: aBeat 1.4s ease-in-out infinite; }
+  .a-flip { animation: aFlip 1.6s ease-in-out infinite; }
+  .a-flame { animation: aGrow .8s cubic-bezier(.2, 1.6, .4, 1) both, aFlicker .25s ease-in-out .8s infinite alternate; transform-origin: 50% 90%; }
+  .a-hop { animation: aHop .6s ease-in-out 3; transform-origin: 50% 100%; }
+  .a-float { animation: aFloat 2.2s ease-in-out infinite; }
+  .a-glow { animation: aPop .7s cubic-bezier(.2, 1.8, .4, 1) both; filter: drop-shadow(0 0 18px #ffd93d); }
+  .a-glow::after { content: ''; position: absolute; inset: -20%; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.9) 50%, transparent 65%);
+                   mix-blend-mode: overlay; animation: aShine 1.6s ease-in-out .6s infinite; border-radius: 50%; }
+  .a-rainbow { font-size: 0 !important; }
+  .a-rainbow svg { width: 180px; height: 96px; display: block; }
+  .a-rainbow path { fill: none; stroke-width: 11; stroke-linecap: round; stroke-dasharray: 300; stroke-dashoffset: 300; animation: aDraw .9s ease-out forwards; }
+  @keyframes aPop { from { transform: scale(0) rotate(-30deg); } }
+  @keyframes aWiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-12deg) scale(1.1); } 75% { transform: rotate(12deg) scale(1.1); } }
+  @keyframes aSpin { from { transform: scale(0) rotateY(0); } to { transform: scale(1) rotateY(720deg); } }
+  @keyframes aBeat { 0%,40%,100% { transform: scale(1); } 10%,30% { transform: scale(1.25); } 20% { transform: scale(1.05); } }
+  @keyframes aFlip { 0% { transform: rotateY(0) translateY(0); } 50% { transform: rotateY(360deg) translateY(-18px); } 100% { transform: rotateY(720deg) translateY(0); } }
+  @keyframes aGrow { from { transform: scale(.2); } }
+  @keyframes aFlicker { from { transform: scale(1, 1) rotate(-2deg); } to { transform: scale(1.06, 1.12) rotate(2deg); } }
+  @keyframes aHop { 0%,100% { transform: translateY(0) scale(1.15, .85); } 30% { transform: translateY(-50px) scale(.9, 1.1); } 60% { transform: translateY(-8px) scale(1); } }
+  @keyframes aFloat { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-16px) rotate(4deg); } }
+  @keyframes aShine { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+  @keyframes aDraw { to { stroke-dashoffset: 0; } }
+  .a-sway { animation: aSway 2.4s ease-in-out infinite; }
+  .a-droop { animation: aDroop 1.6s ease-in .2s forwards; transform-origin: 50% 100%; }
+  .a-shake { animation: aShake .5s ease-in-out .2s 3; }
+  .a-hug { animation: aHug 1.8s ease-in-out infinite; }
+  .reward-box.sad .amount { color: var(--muted); }
+  @keyframes aSway { 0%,100% { transform: translateX(-10px); } 50% { transform: translateX(10px); } }
+  @keyframes aDroop { to { transform: rotate(-35deg) translateY(6px); filter: grayscale(.6); } }
+  @keyframes aShake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-14px) rotate(-6deg); } 40%,80% { transform: translateX(14px) rotate(6deg); } }
+  @keyframes aHug { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+  /* Strahlenkranz hinter der Hauptfigur */
+  .emoji-stage { position: relative; display: grid; place-items: center; }
+  .rays { position: absolute; width: 230px; height: 230px; border-radius: 50%; opacity: 0; pointer-events: none;
+          background: repeating-conic-gradient(from 0deg, #ffd93d55 0deg 12deg, transparent 12deg 30deg);
+          -webkit-mask: radial-gradient(circle, #000 25%, transparent 70%); mask: radial-gradient(circle, #000 25%, transparent 70%); }
+  .rays.on { animation: raysIn .6s ease-out forwards, raysSpin 9s linear infinite; }
+  @keyframes raysIn { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: scale(1); } }
+  @keyframes raysSpin { to { rotate: 360deg; } }
+  /* Titel: Buchstaben hüpfen nacheinander rein */
+  .wave span { display: inline-block; animation: letterIn .5s cubic-bezier(.2, 1.8, .4, 1) both; white-space: pre; }
+  @keyframes letterIn { from { transform: translateY(24px) scale(.3); opacity: 0; } }
+  /* Große Belohnung: Box "wummert" */
+  .reward-box.thump { animation: pop .5s cubic-bezier(.2, 1.6, .4, 1), thump .35s ease-in-out .55s 2; }
+  @keyframes thump { 50% { transform: scale(1.06); } }
+  .amount.count { animation: amountPop .6s cubic-bezier(.2, 1.8, .4, 1) .3s both; }
+  @keyframes amountPop { from { transform: scale(0); } }
+  /* Neue Hauptfiguren-Animationen */
+  .a-orbit { animation: aPop .6s cubic-bezier(.2, 1.8, .4, 1) both, aOrbit 3s linear .6s infinite; }
+  .a-launch { animation: aShakeS .08s linear 8, aLaunch .7s cubic-bezier(.5, 0, .9, .4) .65s forwards; }
+  .a-flutter { animation: aFlap .25s ease-in-out infinite, aFloat 2.2s ease-in-out infinite; }
+  .a-disco { animation: aPop .6s cubic-bezier(.2, 1.8, .4, 1) both, aDisco 1s linear .6s infinite; }
+  @keyframes aOrbit { to { transform: rotate(360deg); } }
+  @keyframes aShakeS { 0%,100% { translate: 0 0; } 25% { translate: -3px 1px; } 75% { translate: 3px -1px; } }
+  @keyframes aLaunch { to { transform: translate(120px, -260px) scale(.4); opacity: 0; } }
+  @keyframes aFlap { 50% { scale: .55 1; } }
+  @keyframes aDisco { 0% { transform: rotate(0); filter: hue-rotate(0); } 100% { transform: rotate(360deg); filter: hue-rotate(360deg); } }
+  /* Startseite */
+  .big.primary.breathe { animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { box-shadow: 0 0 0 0 #e8577e55; } 50% { box-shadow: 0 0 0 10px #e8577e00; transform: scale(1.02); } }
+  .pill { animation: amountPop .45s cubic-bezier(.2, 1.8, .4, 1) both; }
+  .pill:nth-child(2) { animation-delay: .08s; } .pill:nth-child(3) { animation-delay: .16s; } .pill:nth-child(4) { animation-delay: .24s; }
+  .bar > div { position: relative; overflow: hidden; }
+  .bar > div::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+                      animation: shimmer 2.8s ease-in-out infinite; transform: translateX(-100%); }
+  @keyframes shimmer { 60%,100% { transform: translateX(100%); } }
+  .day.yes .dot { animation: amountPop .4s cubic-bezier(.2, 1.8, .4, 1) both; }
+  /* "Bewegung reduzieren": nur dauerhafte Deko-Schleifen aus, Belohnungen bleiben */
+  @media (prefers-reduced-motion: reduce) { .bar > div::after, .card.glint::after, .shiny::before, .shiny::after, .shiny-text, .lvl, .uni-glow, .rays.on { animation: none !important; } }
+  /* ---- Check-in: Öffnen / Schließen ---- */
+  .overlay { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  #sheet:not([hidden]) .sheet { animation: sheetIn .5s cubic-bezier(.2, 1.25, .4, 1) both; }
+  .overlay.closing { animation: fadeOut .28s ease forwards; }
+  .overlay.closing .sheet { animation: sheetOut .28s cubic-bezier(.5, 0, 1, .5) forwards; }
+  .overlay.closing .reward-box { animation: boxOut .26s ease-in forwards !important; }
+  @keyframes sheetIn { from { transform: translateY(100%); } }
+  @keyframes sheetOut { to { transform: translateY(105%); } }
+  @keyframes fadeOut { to { opacity: 0; } }
+  @keyframes boxOut { to { transform: scale(.7) translateY(30px); opacity: 0; } }
+  .sheet::before { content: ''; display: block; width: 40px; height: 5px; border-radius: 9px; background: var(--line); margin: -8px auto 14px; }
+  .moon { display: inline-block; transform-origin: 70% 20%; animation: moonSwing 2.6s ease-in-out .3s infinite; }
+  @keyframes moonSwing { 0%,100% { transform: rotate(-12deg); } 50% { transform: rotate(14deg) scale(1.1); } }
+  .counter { animation: rowIn .45s cubic-bezier(.2, 1.4, .4, 1) both; }
+  @keyframes rowIn { from { transform: translateY(26px); opacity: 0; } }
+  .counter { border-radius: 12px; transition: background .5s ease; }
+  .counter.confirmed { background: var(--good-soft); transition: background .05s; }
+  .stepper button { transition: transform .12s cubic-bezier(.2, 1.8, .4, 1), background .15s; }
+  .stepper button:active { transform: scale(.82); background: var(--accent-soft); }
+  .n.roll-up { animation: rollUp .28s cubic-bezier(.2, 1.6, .4, 1); }
+  .n.roll-down { animation: rollDown .28s cubic-bezier(.2, 1.6, .4, 1); }
+  @keyframes rollUp { from { transform: translateY(60%) scale(.6); opacity: 0; } }
+  @keyframes rollDown { from { transform: translateY(-60%) scale(.6); opacity: 0; } }
+  .n.nope { animation: nope .35s ease; }
+  @keyframes nope { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  .n.okpop { animation: amountPop .35s cubic-bezier(.2, 1.8, .4, 1); }
+  #sheetSave { transition: background .3s, max-width .35s cubic-bezier(.5, 0, .3, 1), border-radius .35s; max-width: 100%; justify-self: center; position: relative; overflow: hidden; }
+  #sheetSave.ready { animation: readyPop .5s cubic-bezier(.2, 1.8, .4, 1); }
+  @keyframes readyPop { 40% { transform: scale(1.06); } }
+  #sheetSave.sweet::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.45) 50%, transparent 70%);
+                            animation: shimmer 1.8s ease-in-out infinite; transform: translateX(-100%); }
+  #sheetSave.saving { max-width: 58px; border-radius: 50%; font-size: 24px; padding: 14px 0; }
+  /* ---- Statistik ---- */
+  #statsBody { margin-top: 14px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tile { background: var(--bg); border-radius: 14px; padding: 10px 8px; text-align: center; animation: amountPop .4s cubic-bezier(.2, 1.8, .4, 1) both; }
+  .tile:nth-child(3n+2) { animation-delay: .05s; } .tile:nth-child(3n) { animation-delay: .1s; }
+  .tv { font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .tv small { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .tl { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.2; }
+  .sub { font-size: 13px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin: 20px 0 10px; }
+  .sub .muted { text-transform: none; font-weight: 500; letter-spacing: 0; }
+  .cal { display: grid; gap: 4px; }
+  .cal-row { display: grid; grid-template-columns: 44px repeat(7, 1fr); gap: 4px; align-items: center; }
+  .cal-head span { font-size: 11px; color: var(--muted); text-align: center; font-weight: 700; }
+  .cal-lbl { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cell { aspect-ratio: 1; border-radius: 7px; background: var(--line); display: grid; place-items: center; font-size: 12px; font-weight: 800;
+          color: #fff; padding: 0; font-style: normal; max-height: 34px; }
+  .cell.yes { background: var(--good); }
+  .cell.no { background: var(--bad); }
+  .cell.jok { background: var(--gold-soft); font-size: 11px; }
+  .cell.sun { background: transparent; border: 1.5px dashed var(--line); }
+  .cell.sun.has { background: var(--accent-soft); border: 0; }
+  .cell.fut { opacity: .35; }
+  .cell.sel { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--text); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .cell { width: 16px; height: 16px; font-size: 9px; display: inline-grid; }
+  .legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .s1 { background: var(--s1); } .s2 { background: var(--s2); }
+  .detail { font-size: 14px; margin-top: 10px; padding: 9px 12px; background: var(--bg); border-radius: 12px; min-height: 38px; line-height: 1.4; }
+  .hbars { display: grid; gap: 8px; }
+  .hb { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; cursor: pointer; padding: 2px 0; }
+  .hb-l { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .hb-track { height: 12px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .hb-fill { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; animation: growX .8s cubic-bezier(.2, 1, .3, 1) both; transform-origin: left; }
+  .hb-v { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 40px; text-align: right; }
+  .hb-v em { font-style: normal; font-weight: 600; color: var(--muted); font-size: 11px; display: block; }
+  .hb.sel .hb-l, .vb.sel .vb-l { color: var(--text); }
+  @keyframes growX { from { transform: scaleX(0); } }
+  .vbars { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; height: 150px; align-items: end; margin-top: 8px; }
+  .vb { display: grid; grid-template-rows: auto 1fr auto; height: 100%; align-items: end; justify-items: center; cursor: pointer; gap: 4px; }
+  .vb-v { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .vb-stack { width: 70%; max-width: 26px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;
+              border-bottom: 1px solid var(--line); animation: growY .8s cubic-bezier(.2, 1, .3, 1) both; transform-origin: bottom; }
+  .seg { display: block; width: 100%; }
+  .seg:first-child { border-radius: 4px 4px 0 0; }
+  .vb-l { font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .vb.sel .vb-stack { filter: brightness(1.1); }
+  .vb:not(.sel) .seg { opacity: .92; }
+  @keyframes growY { from { transform: scaleY(0); } }
+  /* ---- Einhorny ---- */
+  .hero { display: grid; grid-template-columns: 112px 1fr; gap: 10px; align-items: center; margin-top: 2px; }
+  .hero { position: relative; }
+  .joker-badge { position: absolute; left: 62px; top: 74px; z-index: 4; display: flex; align-items: center; gap: 4px; padding: 5px 12px 5px 7px;
+                 border-radius: 99px; background: linear-gradient(135deg, #fff3c4, #ffd76a); color: #5a3d00; box-shadow: 0 4px 14px rgba(224, 164, 0, .45);
+                 border: 2px solid #fff; }
+  .jb-card { font-size: 24px; display: inline-block; animation: cardTilt 2.4s ease-in-out infinite; }
+  .jb-n { font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .jb-n::before { content: '×'; font-size: 14px; font-weight: 700; margin-right: 1px; opacity: .7; }
+  .joker-badge.zero { background: var(--line); color: var(--muted); box-shadow: none; }
+
+  .joker-badge.zero .jb-card { animation: none; filter: grayscale(1); }
+  .joker-badge.gain { animation: jokerGain .9s cubic-bezier(.2, 1.8, .4, 1); }
+  .joker-badge.gain .jb-card { animation: cardFlip .9s ease; }
+  @keyframes cardTilt { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+  @keyframes cardFlip { 0% { transform: rotateY(0) scale(1); } 50% { transform: rotateY(180deg) scale(1.6); } 100% { transform: rotateY(360deg) scale(1); } }
+  @keyframes jokerGain { 0% { transform: scale(1); } 30% { transform: scale(1.5); } 100% { transform: scale(1); } }
+  .uni-wrap { position: relative; width: 112px; height: 112px; background: none; padding: 0; display: grid; place-items: center; }
+  .uni { font-size: 78px; line-height: 1; display: block; transform-origin: 50% 95%; animation: bob 3s ease-in-out infinite; position: relative; z-index: 1; }
+  .uni-glow { position: absolute; inset: 14px; border-radius: 50%; background: radial-gradient(circle, #ffd1e0 0%, #ffe9c7 45%, transparent 70%); animation: glowPulse 3s ease-in-out infinite; }
+  .uni-acc { position: absolute; top: 2px; right: 6px; font-size: 30px; z-index: 2; animation: accBob 3s ease-in-out infinite; }
+  .uni-acc:empty { display: none; }
+  .uni-fx { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  .uni-fx i { position: absolute; font-style: normal; }
+  .bubble { position: relative; background: var(--card); border-radius: 18px; padding: 12px 14px; box-shadow: var(--shadow); }
+  .bubble::before { content: ''; position: absolute; left: -8px; top: 50%; margin-top: -8px; border: 8px solid transparent; border-left: 0; border-right-color: var(--card); }
+  .greet { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .say { font-size: 16px; font-weight: 700; line-height: 1.3; margin: 3px 0 6px; }
+  .say.pop { animation: sayPop .45s cubic-bezier(.2, 1.8, .4, 1); }
+  .lvl { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  @keyframes accBob { 0%,100% { transform: translateY(0) rotate(8deg); } 50% { transform: translateY(-7px) rotate(-6deg); } }
+  @keyframes glowPulse { 0%,100% { transform: scale(.92); opacity: .7; } 50% { transform: scale(1.05); opacity: 1; } }
+  @keyframes sayPop { from { transform: scale(.7); opacity: 0; } }
+  @media (prefers-color-scheme: dark) { .uni-glow { background: radial-gradient(circle, #5a2a3d 0%, #4a3a1f 45%, transparent 70%); } }
+  /* Stimmungen */
+  .m-schlaeft .uni { animation: sleep 4s ease-in-out infinite; filter: saturate(.8); }
+  .m-wartet .uni { animation: hopWait 1.2s ease-in-out infinite; }
+  .m-gefahr .uni { animation: panic .18s linear infinite; }
+  .m-gluecklich .uni { animation: hopHappy 1.4s ease-in-out infinite; }
+  .m-feuer .uni { animation: hopHappy 1s ease-in-out infinite; filter: drop-shadow(0 0 10px #ff9a3d); }
+  .m-traurig .uni { animation: sad 4s ease-in-out infinite; filter: grayscale(.45); }
+  .m-party .uni, .m-schuldenfrei .uni { animation: dance .8s ease-in-out infinite; }
+  .m-chillen .uni { animation: sway 3s ease-in-out infinite; }
+  .m-aufgeregt .uni { animation: hopWait .8s ease-in-out infinite; }
+  .m-weihnacht .uni { animation: sway 3s ease-in-out infinite; }
+  .m-traurig .uni-glow, .m-schlaeft .uni-glow { opacity: .35; animation: none; }
+  .uni-wrap.mega .uni { animation: megaSpin .6s linear infinite !important; filter: drop-shadow(0 0 14px #ff8fab) hue-rotate(0deg); }
+  .uni-wrap.mega .uni-glow { background: conic-gradient(#ff5c8a, #ffb547, #ffd93d, #4cd3a0, #5cb8ff, #b57bff, #ff5c8a); animation: raysSpin 1s linear infinite; opacity: .8; }
+  @keyframes megaSpin { 0% { transform: rotate(0) scale(1.1); } 50% { transform: rotate(180deg) scale(1.35); } 100% { transform: rotate(360deg) scale(1.1); } }
+  body.quake main { animation: quake .12s linear 5; }
+  @keyframes quake { 0%,100% { transform: translate(0, 0); } 25% { transform: translate(-5px, 3px); } 75% { transform: translate(5px, -3px); } }
+  .uni-wrap.petted .uni { animation: petted .6s cubic-bezier(.2, 1.8, .4, 1) !important; }
+  @keyframes sleep { 0%,100% { transform: rotate(-8deg) scale(1, .97); } 50% { transform: rotate(-8deg) scale(1.02, 1); } }
+  @keyframes hopWait { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-14px) rotate(-5deg); } 60% { transform: translateY(0) scale(1.06, .94); } }
+  @keyframes panic { 0%,100% { transform: translateX(-2px) rotate(-2deg); } 50% { transform: translateX(2px) rotate(2deg); } }
+  @keyframes hopHappy { 0%,100% { transform: translateY(0) scale(1); } 25% { transform: translateY(0) scale(1.08, .92); } 50% { transform: translateY(-18px) scale(.95, 1.05); } 75% { transform: translateY(0) scale(1.04, .96); } }
+  @keyframes sad { 0%,100% { transform: rotate(10deg) translateY(4px); } 50% { transform: rotate(12deg) translateY(6px); } }
+  @keyframes dance { 0%,100% { transform: rotate(-12deg) translateY(0); } 50% { transform: rotate(12deg) translateY(-12px); } }
+  @keyframes sway { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+  @keyframes petted { 0% { transform: scale(1); } 30% { transform: scale(1.25, .8); } 60% { transform: scale(.9, 1.15) translateY(-14px); } 100% { transform: scale(1); } }
+  /* Effekte rund ums Einhorn */
+  .fx-zzz i { font-weight: 800; color: var(--muted); left: 70%; top: 20%; animation: zzz 3s ease-in infinite; opacity: 0; }
+  .fx-zzz i:nth-child(2) { animation-delay: 1s; font-size: 18px; } .fx-zzz i:nth-child(3) { animation-delay: 2s; font-size: 22px; }
+  @keyframes zzz { 0% { opacity: 0; transform: translate(0, 0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(24px, -40px); } }
+  .fx-tear i { left: 30%; top: 38%; font-size: 14px; animation: tear 2.2s ease-in infinite; opacity: 0; }
+  @keyframes tear { 0% { opacity: 0; transform: translateY(0) scale(.5); } 20% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateY(40px); } }
+  .fx-sweat i { font-size: 14px; animation: sweat 1s ease-out infinite; opacity: 0; }
+  .fx-sweat i:nth-child(1) { left: 14%; top: 16%; } .fx-sweat i:nth-child(2) { left: 74%; top: 30%; animation-delay: .5s; }
+  @keyframes sweat { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(16px); } }
+  .fx-sparkle i, .fx-fire i, .fx-party i, .fx-snow i { animation: twinkleI 1.8s ease-in-out infinite; font-size: 16px; }
+  .uni-fx i:nth-child(1) { left: 4%; top: 22%; } .uni-fx i:nth-child(2) { left: 80%; top: 66%; animation-delay: .6s; } .uni-fx i:nth-child(3) { left: 10%; top: 72%; animation-delay: 1.2s; }
+  .fx-snow i { animation: snow 3s linear infinite; }
+  @keyframes twinkleI { 0%,100% { opacity: .2; transform: scale(.6) rotate(0); } 50% { opacity: 1; transform: scale(1.15) rotate(25deg); } }
+  @keyframes snow { 0% { opacity: 0; transform: translateY(-20px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(40px) rotate(90deg); } }
+  .fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  @keyframes fadeIn { from { opacity: 0; } }
+  @keyframes slideUp { from { transform: translateY(100%); } }
+  @keyframes pop { from { transform: scale(.4); opacity: 0; } }
+  @keyframes wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-12deg) scale(1.1); } 75% { transform: rotate(12deg) scale(1.1); } }
+</style>
+</head>
+<body>
+<div class="demo-bar" id="demoBar" hidden>🎬 DEMO – nichts wird gespeichert <button id="demoExit">Beenden</button></div>
+<main>
+  <div class="tab" id="tabHome">
+  <div class="topbar">
+    <button class="tb-streak" id="streakBtn" aria-label="Serie"><span class="tb-fl">🔥</span><b id="streakN">0</b></button>
+    <button class="tb-item" id="tbMoney" aria-label="Zum Fortschritt">💰 <b id="tbEuro">0 €</b></button>
+    <button class="tb-item" id="tbLevel" aria-label="Zur Sammlung">⭐ Lv <b id="tbLvl">1</b></button>
+  </div>
+
+  <section class="hero">
+    <button class="uni-wrap" id="uni" aria-label="Einhorny streicheln">
+      <span class="uni-glow"></span>
+      <span class="uni" id="uniBody">🦄</span>
+      <span class="uni-acc" id="uniAcc"></span>
+      <span class="uni-fx" id="uniFx"></span>
+    </button>
+    <button class="joker-badge" id="jokerBadge" aria-label="Joker"><span class="jb-card">🃏</span><span class="jb-n" id="jokerN">0</span></button>
+    <div class="bubble">
+      <div class="greet" id="greeting"></div>
+      <div class="say" id="uniSay"></div>
+      <div class="lvl" id="uniLvl" hidden></div>
+    </div>
+  </section>
+
+  <section class="card quest" id="questCard" hidden></section>
+
+  <section class="card" id="todayCard"></section>
+
+  <section class="card">
+    <div class="label" id="weekLabel">Diese Woche</div>
+    <div class="week" id="week"></div>
+    <div class="status" id="weekStatus"></div>
+    <details class="rules-box">
+      <summary>ℹ️ So funktioniert's</summary>
+      <div class="rules" id="rulesBase"></div>
+      <div class="rules" id="gebaeckRule"></div>
+      <div class="rules" id="jokerInfo"></div>
+    </details>
+  </section>
+
+  <section class="card split banner" id="splitCard" hidden></section>
+
+  <section class="card backup-card banner" id="backupCard" hidden></section>
+
+  <button class="card debt-mini" id="debtMini"><span class="dm-l" id="dmLabel">Restschulden</span><b id="dmVal">–</b><span class="dm-bar"><i id="dmFill"></i></span><span class="dm-go">›</span></button>
+  </div>
+
+  <div class="tab" id="tabProgress" hidden>
+  <h2 class="tab-h">📈 Fortschritt</h2>
+  <section class="card glint">
+    <div class="label" id="debtLabel">Restschulden</div>
+    <div class="debt-num shiny-text" id="debt">–</div>
+    <div class="debt-sub" id="debtSub"></div>
+    <div class="bar"><div id="barFill" style="width:0"></div></div>
+    <div class="bar-legend"><span id="paidLabel"></span><span id="startLabel"></span></div>
+    <div class="shiny-row" id="shinyRow"></div>
+  </section>
+
+  <section class="card">
+    <div class="label">Bisherige Wochen</div>
+    <ul class="hist" id="hist"></ul>
+  </section>
+
+  <section class="card">
+    <details id="statsBox" open class="tab-open">
+      <summary>📊 Statistik</summary>
+      <div id="statsBody"></div>
+    </details>
+  </section>
+  </div>
+
+  <div class="tab" id="tabColl" hidden>
+  <h2 class="tab-h">🎒 Sammlung</h2>
+  <section class="card" id="collCard"></section>
+  </div>
+
+  <div class="tab" id="tabMore" hidden>
+  <h2 class="tab-h">⚙️ Einstellungen</h2>
+  <section class="card">
+    <details open class="tab-open">
+      <summary>⚙️ Einstellungen</summary>
+      <div class="set-note">Änderungen werden automatisch gespeichert ✓</div>
+
+      <details class="set-group" open>
+        <summary>👤 Profil &amp; Challenge</summary>
+        <label class="field">Name (für die Begrüßung)
+          <input type="text" id="setName" autocomplete="off" placeholder="Dein Name">
+        </label>
+        <label class="field">Worum geht's?
+          <select id="setGoalMode"><option value="debt">💸 Schulden abbauen</option><option value="save">🐷 Auf ein Ziel sparen</option></select>
+        </label>
+        <label class="field"><span id="setDebtL">Schulden insgesamt (€)</span>
+          <input type="number" id="setDebt" inputmode="decimal" min="0" step="1">
+        </label>
+        <div class="row" style="margin-top:0">
+          <label class="field" style="flex:1">Pro Woche (€)<input type="number" id="setPerWeek" inputmode="decimal" min="0" step="1"></label>
+          <label class="field" style="flex:1">Samstag-Bonus (€)<input type="number" id="setSatBonus" inputmode="decimal" min="0" step="1"></label>
+        </div>
+        <label class="field">Eintragen in <small>(optional, z. B. Name eurer Abrechnungs-App)</small>
+          <input type="text" id="setPayout" maxlength="30" placeholder="leer = allgemein">
+        </label>
+        <label class="field">Start der Challenge <small>(wird auf den Montag gesetzt)</small>
+          <input type="date" id="setStart">
+        </label>
+      </details>
+
+      <details class="set-group">
+        <summary>🎄 Gebäckmodus</summary>
+        <label class="switch-row"><span>Bis zu 2 Plätzchen am Tag erlaubt</span>
+          <input type="checkbox" id="setGebaeck" class="switch">
+        </label>
+        <div class="row" style="margin-top:4px">
+          <label class="field" style="flex:1;margin-top:0">Beginn<input type="date" id="setGebaeckStart"></label>
+          <label class="field" style="flex:1;margin-top:0">Ende<input type="date" id="setGebaeckEnd"></label>
+        </div>
+      </details>
+
+      <details class="set-group">
+        <summary>🎮 Check-in &amp; Belohnungen</summary>
+        <label class="field">Check-in-Variante
+          <select id="setMode"><option value="random">🎲 Zufall (jeden Tag anders)</option></select>
+        </label>
+        <label class="field">Ritual vor dem Speichern
+          <select id="setRitual"><option value="random">🎲 Manchmal (zufälliges Ritual)</option><option value="always">🎲 Immer (zufälliges Ritual)</option><option value="swear">Immer Ehrenschwur</option><option value="highfive">Immer High-Five</option><option value="signature">Immer Unterschrift</option><option value="candle">Immer Kerze</option><option value="never">Nie</option></select>
+        </label>
+        <label class="field">Belohnung an zuckerfreien Tagen
+          <select id="setPrize"><option value="">🎲 Zufall</option><option value="anim">Animation</option><option value="scratch">Rubbellos</option><option value="wheel">Glücksrad</option><option value="shake">Geschenkbox</option><option value="gacha">Kapselautomat</option></select>
+        </label>
+        <div class="field">🎟️ Gutscheine von dir <small>(können selten im Rubbellos, Glücksrad & der Geschenkbox gewonnen werden)</small>
+          <div class="v-list" id="vList"></div>
+          <div class="v-add"><input type="text" id="vNew" placeholder="z. B. Kaffee trinken gehen ☕" maxlength="60" enterkeyhint="done"><button class="small" id="vAdd">＋</button></div>
+          <div class="v-sugg" id="vSugg"></div>
+        </div>
+      </details>
+
+      <details class="set-group">
+        <summary>🧪 Ausprobieren</summary>
+        <div class="set-note">Nur zum Anschauen – hier wird nichts gespeichert oder gutgeschrieben.</div>
+        <button class="small" id="hapticTest" style="margin-top:12px">📳 Vibration testen</button>
+        <div class="set-note" id="hapticNote">iPhone: braucht iOS 18+ und „System-Haptik“ (Einstellungen → Töne &amp; Haptik).</div>
+        <div class="field">Check-ins, Belohnungen &amp; Rituale<div class="fx-grid" id="modeList"></div></div>
+        <div class="field">Animationen<div class="fx-grid" id="fxList"></div></div>
+      </details>
+
+      <details class="set-group">
+        <summary>💾 Daten &amp; Backup</summary>
+        <div class="set-note" id="persistInfo"></div>
+        <div class="row">
+          <button class="small" id="fileBackup">💾 Backup sichern / teilen</button>
+          <button class="small" id="fileRestore">📂 Backup laden</button>
+          <input type="file" id="fileInput" accept="application/json,.json" hidden>
+        </div>
+        <details class="set-sub">
+          <summary>Backup als Text (für Profis)</summary>
+          <textarea id="backup"></textarea>
+          <div class="row">
+            <button class="small" id="copyBackup">Kopieren</button>
+            <button class="small" id="restoreBackup">Wiederherstellen</button>
+          </div>
+        </details>
+        <div class="danger-zone">
+          <button class="small danger" id="resetAll">🗑️ Alles zurücksetzen</button>
+        </div>
+      </details>
+      <button class="demo-start" id="demoStart">🎬 Demo-Modus starten<small>Zum Herzeigen mit Beispieldaten – dein echter Stand bleibt unberührt</small></button>
+    </details>
+  </div>
+</main>
+<nav class="tabbar" id="tabbar">
+  <button data-tab="Home" class="on"><span>🏠</span>Heute</button>
+  <button data-tab="Progress"><span>📈</span>Fortschritt</button>
+  <button data-tab="Coll"><span>🎒</span>Sammlung</button>
+  <button data-tab="More"><span>⚙️</span>Mehr</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="sheet" hidden>
+  <div class="sheet">
+    <div class="sheet-head"><div class="label" id="sheetDay"></div><button class="game-x game-help" id="sheetHelp" aria-label="Tipp anzeigen">💡</button></div>
+    <div class="howto" id="sheetHow" hidden>💡 Mit +/− einstellen. Stimmt eine Zahl schon? Einfach auf die Zahl tippen. Bei Plätzchen eine Option wählen.</div>
+    <p class="today-q">Wie war dein Tag? <span class="moon">🌙</span></p>
+    <div id="counters"></div>
+    <div id="jokerZone" class="joker-zone" hidden></div>
+    <div class="hint" id="sheetHint" style="margin-top:6px">Stell jeden Zähler auf die richtige Zahl ein.</div>
+    <div class="sheet-actions">
+      <button class="big primary" id="sheetSave">Check-in speichern</button>
+      <div class="row">
+        <button class="small" id="sheetCancel">Abbrechen</button>
+        <button class="small danger" id="sheetDelete">Eintrag löschen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="game" hidden>
+  <div class="game-box">
+    <div class="game-head"><h3 id="gameTitle"></h3><div class="gh-btns"><button class="game-x game-help" id="gameHelp" aria-label="Tipp anzeigen" hidden>💡</button><button class="game-x" id="gameX" aria-label="Schließen">✕</button></div></div>
+    <div class="howto" id="gameHow" hidden></div>
+    <div class="gprog" id="gameProg" hidden><div class="gp-bar"><i id="gameProgFill"></i></div><span id="gameProgTxt"></span><span class="combo" id="gameCombo" hidden></span></div>
+    <div id="gameBody"></div>
+  </div>
+</div>
+
+<div class="overlay reward" id="payPop" hidden>
+  <div class="reward-box pay-box">
+    <div class="sp-icon">💸</div>
+    <h2 id="spTitle">Belohnung eintragen!</h2>
+    <div class="amount" id="spAmount"></div>
+    <p id="spText"></p>
+    <ol class="sp-steps" id="spSteps"></ol>
+    <button class="big primary sweet" id="spDone" style="width:100%">✓ Eingetragen</button>
+    <button class="small" id="spLater" style="margin-top:10px">Später erinnern</button>
+  </div>
+</div>
+
+<div class="overlay reward" id="reward" hidden>
+  <div class="reward-box">
+    <div class="emoji-stage"><div class="rays" id="rwRays"></div><div class="reward-emoji" id="rwEmoji"></div></div>
+    <h2 id="rwTitle"></h2>
+    <div class="amount" id="rwAmount"></div>
+    <div class="streak" id="rwStreak"></div>
+    <div class="debtroll" id="rwDebt"></div>
+    <p id="rwText"></p>
+    <button class="big primary" id="rwClose">Weiter</button>
+  </div>
+</div>
+
+<script src="fx.js"></script>
+<script src="games.js"></script>
+<script>
+(() => {
+  const KEY = 'zuckerfrei-v1';
+  // Beträge und Wortwahl kommen aus dem Stand (werden in der Begrüßung abgefragt) – nichts ist fest eingebaut
+  let BASE = 0, BONUS = 0;
+  const applyDeal = () => { BASE = Number(state.perWeek) || 0; BONUS = Number(state.satBonus) || 0; };
+  const isSave = () => state.goalMode === 'save';
+  const goalAmount = () => Number(state.startDebt) || 0;
+  const T = () => isSave()
+    ? { card: 'Gesammelt', did: 'gesammelt', done: 'Ziel erreicht! 🥳🎉', sign: '+', of: 'Ziel' }
+    : { card: 'Restschulden', did: 'abgebaut', done: 'Schuldenfrei! 🥳🎉', sign: '−', of: 'von' };
+  // angezeigter Hauptbetrag: Schulden-Modus = was übrig ist, Spar-Modus = was gesammelt wurde
+  const shownAmount = earned => isSave() ? earned : Math.max(0, goalAmount() - earned);
+  const goalReached = earned => goalAmount() > 0 && earned >= goalAmount();
+  const payoutName = () => (state.payout || '').trim();
+  const WD = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  const WD_LONG = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+  const PRAISE = ['Stark! 💪', 'Du rockst das! ✨', 'Wieder ein Tag geschafft 🎉', 'So stolz auf dich ❤️', 'Zucker hat keine Chance 😎', 'Weiter so! 🌟'];
+  const COMFORT = ['Passiert – nächste Woche wieder 💛', 'Kein Drama, morgen ist ein neuer Tag 🌱', 'Kopf hoch, du schaffst das 💪'];
+
+  // ---------- Datum (immer lokale Zeit, keine UTC-Fallen) ----------
+  const pad = n => String(n).padStart(2, '0');
+  const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+  const idx = d => (d.getDay() + 6) % 7;            // Mo=0 … So=6
+  const mondayOf = d => addDays(d, -idx(d));
+  // "Heute" wechselt erst um 4 Uhr nachts – ein später Check-in zählt noch für den Vortag
+  const DAY_START_HOUR = 4;
+  const EVENING_HOUR = 18;
+  const today = () => { const n = new Date(Date.now() - DAY_START_HOUR * 3600e3); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+  const fmtDate = d => `${d.getDate()}.${d.getMonth() + 1}.`;
+  const euro = n => n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: n % 1 ? 2 : 0 });
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+
+  // ---------- Speicher ----------
+  function defaults() {
+    const t = today();
+    const start = idx(t) === 0 ? t : addDays(mondayOf(t), 7); // nächster Montag (oder heute, wenn Montag)
+    return { startDebt: 0, startDate: ymd(start), days: {} };
+  }
+  let loadedFromLocal = false;
+  function load() {
+    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { loadedFromLocal = true; return Object.assign(defaults(), s); } } catch (e) {}
+    return defaults();
+  }
+  let storageReady = false;                  // erst nach dem IndexedDB-Abgleich schreiben
+  function save() {
+    if (!storageReady || realState) return;                // im Demo-Modus wird nie gespeichert
+    state.savedAt = Date.now();
+    const txt = JSON.stringify(state);
+    try { localStorage.setItem(KEY, txt); } catch (e) {}
+    IDB.set(txt);
+  }
+  let state = load();
+
+  // ---------- Logik ----------
+  // Gebäckmodus: im eingestellten Zeitraum (Standard: ab jetzt bis 31.12.) sind bis zu COOKIE_LIMIT Plätzchen am Tag erlaubt
+  const COOKIE_LIMIT = 2;
+  function gebaeckDefaults() {
+    const t = today(), y = t.getMonth() === 0 ? t.getFullYear() - 1 : t.getFullYear();
+    const start = t.getMonth() >= 10 ? ymd(t) : `${y}-12-01`;
+    return { start, end: `${y}-12-31` };
+  }
+  if (!state.gebaeckStart) { const g = gebaeckDefaults(); state.gebaeckStart = g.start; state.gebaeckEnd = g.end; }
+  const gebaeck = k => state.gebaeck !== false && k >= state.gebaeckStart && k <= state.gebaeckEnd;
+  const gebaeckRange = () => `${fmtDate(parse(state.gebaeckStart))}–${fmtDate(parse(state.gebaeckEnd))}`;
+
+  // Tageseintrag: { drinks, sweets, zero, protein, cookies }  → geschafft, wenn Zucker 0 (und Plätzchen im Rahmen)
+  function dayStatus(k) {
+    const e = state.days[k];
+    if (!e) {
+      // Vergangener Tag ohne Check-in = nicht geschafft
+      const d = parse(k);
+      return d < today() && d >= parse(state.startDate) ? 'no' : null;
+    }
+    if (e.joker) return 'yes';
+    return (e.drinks || 0) === 0 && (e.sweets || 0) === 0 && (e.cookies || 0) <= COOKIE_LIMIT ? 'yes' : 'no';
+  }
+  function weekResult(mon) {
+    const st = [0, 1, 2, 3, 4, 5].map(i => dayStatus(ymd(addDays(mon, i))));
+    const monFri = st.slice(0, 5);
+    const sat = st[5];
+    const failed = monFri.includes('no');
+    const base = monFri.every(s => s === 'yes');
+    const bonus = base && sat === 'yes';
+    return { st, failed, base, bonus, satNo: sat === 'no', yesCount: monFri.filter(s => s === 'yes').length,
+             earned: (base ? BASE : 0) + (bonus ? BONUS : 0) };
+  }
+  function allWeeks() {
+    const start = mondayOf(parse(state.startDate));
+    const cur = mondayOf(today());
+    const list = [];
+    for (let m = start; m <= cur; m = addDays(m, 7)) list.push(m);
+    return list;
+  }
+  const totalEarned = () => allWeeks().reduce((s, m) => s + weekResult(m).earned, 0);
+
+  // ---------- UI ----------
+  const $ = id => document.getElementById(id);
+
+  function render() {
+    const t = today();
+    const start = parse(state.startDate);
+    const started = t >= start;
+    applyDeal();
+    const earned = totalEarned();
+    const remaining = Math.max(0, goalAmount() - earned);
+
+    // Begrüßung
+    const h = new Date().getHours();
+    $('greeting').textContent = (h < 11 && h >= 4 ? 'Guten Morgen' : h < 18 && h >= 4 ? 'Hallo' : 'Guten Abend') + (state.name ? ', ' + state.name : '') + ' 👋';
+
+    renderMascot(t, started);
+    renderTopbar(started);
+    renderQuest(t, started);
+    renderBackupCard(started);
+
+    // Schulden
+    $('debtLabel').textContent = T().card;
+    $('debt').textContent = euro(shownAmount(earned));
+    renderShiny(t, started);
+    $('debtSub').textContent = goalReached(earned) ? T().done
+      : isSave() ? (goalAmount() ? `Noch ${euro(remaining)} bis zum Ziel` : 'Jede zuckerfreie Woche zählt')
+      : earned > 0 ? `Schon ${euro(earned)} abgebaut` : 'Jede zuckerfreie Woche zählt';
+    $('barFill').style.width = (goalAmount() ? Math.min(100, earned / goalAmount() * 100) : 0) + '%';
+    $('paidLabel').textContent = `${euro(earned)} ${T().did}`;
+    $('startLabel').textContent = goalAmount() ? `${T().of} ${euro(goalAmount())}` : '';
+
+    // Eintragen-Erinnerung kommt als Popup (siehe maybePayout)
+    $('splitCard').hidden = true;
+
+    // Heute
+    const tc = $('todayCard');
+    const key = ymd(t);
+    const wi = idx(t);
+    if (!started) {
+      const diff = Math.round((start - t) / 864e5);
+      tc.innerHTML = `<div class="label">Heute</div><p class="today-q">${diff === 1 ? 'Morgen' : `In ${diff} Tagen`} geht's los! 🚀</p>
+        <div class="hint">Start ist ${WD_LONG[idx(start)]}, der ${fmtDate(start)} Ab dann jeden Abend vor dem Schlafengehen kurz einchecken.</div>`;
+    } else {
+      const e = state.days[key];
+      const sun = wi === 6;
+      const label = `<div class="label">Heute · ${WD_LONG[wi]}${sun ? ' · zählt nicht' : ''}</div>`;
+      if (e) {
+        const s = dayStatus(key);
+        const title = sun ? 'Sonntag eingetragen 🍰' : e.joker ? 'Joker eingesetzt 🃏' : s === 'yes' ? 'Heute zuckerfrei geblieben ✅' : 'Heute hat der Zucker gewonnen';
+        tc.innerHTML = `${label}<p class="today-q">${title}</p>
+          <div class="checkin-done">
+            ${countersFor(key).map(c => { const o = okVal(c, e[c.id] || 0); return `<span class="pill ${o === true ? 'ok' : o === false ? 'ko' : ''}">${c.icon} ${showVal(c, e[c.id])}</span>`; }).join('')}
+          </div>
+          ${!sun && s === 'no' && jokerAvailable(key) ? '<div class="hint">🃏 Du hast noch Joker – über „Check-in bearbeiten“ einsetzen.</div>' : ''}
+          <div class="done-row"><span class="hint" style="margin:0">${sun ? 'Bis morgen! 🌙' : 'Erledigt für heute – bis morgen Abend 🌙'}</span><button class="linkbtn" data-edit="${key}">Bearbeiten</button></div>
+          ${realState ? `<button class="big primary demo-again" data-demo-again="1">🎬 Nochmal einchecken <small>(nächste Variante)</small></button>` : ''}`;
+      } else {
+        tc.innerHTML = `${label}<p class="today-q">${sun ? 'Sonntag ist frei 🍰' : 'Zeit für deinen Abend-Check-in'}</p>
+          <button class="big primary breathe" data-edit="${key}">🌙 Abend-Check-in</button>
+          <div class="hint">${sun ? 'Zählt nicht für die Woche – du kannst aber trotzdem eintragen.' : 'Am besten abends vor dem Schlafengehen.'}</div>`;
+      }
+    }
+    if (started && gebaeck(key)) tc.insertAdjacentHTML('beforeend', `<div class="nudge xmas mini">🎄 Gebäckmodus: max. ${COOKIE_LIMIT} Plätzchen am Tag</div>`);
+    tc.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openCheckin(b.dataset.edit));
+    tc.querySelectorAll('[data-demo-again]').forEach(b => b.onclick = () => {
+      if (!realState) return;
+      delete state.days[key]; render(); FX.tap(); openCheckin(key);                // nur im Demo-Stand
+    });
+
+    // Woche
+    const mon = mondayOf(started ? t : start);
+    $('weekLabel').textContent = `${started ? 'Diese Woche' : 'Erste Woche'} · ${fmtDate(mon)}–${fmtDate(addDays(mon, 6))}`;
+    const wk = $('week');
+    wk.innerHTML = '';
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(mon, i);
+      const k = ymd(d);
+      const e = state.days[k];
+      const s = i < 6 ? dayStatus(k) : null;
+      const b = document.createElement('button');
+      b.className = 'day' + (s ? ' ' + s : '') + (k === key ? ' today' : '') + (i === 5 ? ' sat' : '') + (i === 6 ? ' free' : '');
+      const dot = i === 6 ? (e ? '✓' : '🍰') : e && e.joker ? '🃏' : s === 'yes' ? '✓' : s === 'no' ? (e ? '✕' : '–') : d.getDate();
+      b.innerHTML = `<span class="wd">${WD[i]}</span><span class="dot">${dot}</span>`;
+      if (k === key && d >= start) b.onclick = () => openCheckin(k);
+      else { b.setAttribute('aria-disabled', 'true'); b.onclick = () => { FX.tap(); b.classList.remove('nope-d'); b.offsetHeight; b.classList.add('nope-d');
+        toast(d > t ? 'Dieser Tag kommt erst noch 📅' : d < start ? 'Vor dem Start 🙂' : 'Vergangene Tage sind gesperrt 🔒'); }; }
+      if (d > t || d < start) b.classList.add('future');
+      wk.appendChild(b);
+    }
+
+    // Wochenstatus
+    const r = weekResult(mon);
+    const ws = $('weekStatus');
+    let cls = '', msg = '';
+    // Rettbar sind nur vergessene Tage und heute – vergangene Check-ins sind gesperrt
+    const failedDays = [0, 1, 2, 3, 4].map(i => ymd(addDays(mon, i))).filter(k => dayStatus(k) === 'no');
+    const rescuable = failedDays.every(k => !state.days[k] || k === key) ? failedDays : [];
+    if (!started) { msg = 'Noch nicht gestartet – die erste Woche beginnt bald.'; }
+    else if (r.failed && rescuable.length && jokerCount(key) >= rescuable.length) {
+      cls = 'gold'; msg = `${rescuable.map(x => WD_LONG[idx(parse(x))]).join(' & ')} ${rescuable.length > 1 ? 'sind' : 'ist'} noch zu retten – setz beim Check-in einen Joker ein 🃏`;
+    }
+    else if (r.failed) { cls = 'bad'; msg = `Diese Woche gibt es leider keine ${euro(BASE)}. Nächsten Montag geht's frisch los 💛`; }
+    else if (r.bonus) { cls = 'gold'; msg = `Perfekte Woche! <b>${euro(BASE + BONUS)}</b> verdient 🏆`; }
+    else if (r.base && r.satNo) { cls = 'good'; msg = `<b>${euro(BASE)}</b> verdient! 🎉 Samstag war's knapp – trotzdem super.`; }
+    else if (r.base) { cls = 'good'; msg = `<b>${euro(BASE)}</b> sind sicher! 🎉 Schaffst du Samstag auch noch, gibt's <b>+${euro(BONUS)}</b>.`; }
+    else { const left = 5 - r.yesCount; msg = `Noch <b>${left} ${left === 1 ? 'Tag' : 'Tage'}</b> bis zu den ${euro(BASE)} – du schaffst das!`; }
+    ws.className = 'status ' + cls;
+    ws.hidden = !started;
+    ws.innerHTML = msg;
+
+    $('rulesBase').innerHTML = `Mo–Fr ohne Süßigkeiten &amp; Süßgetränke = <b>${euro(BASE)}</b> ${isSave() ? 'für dich' : 'weniger Schulden'}.<br>
+      ${BONUS ? `Samstag auch geschafft = <b>+${euro(BONUS)}</b> extra. ` : ''}Sonntag zählt nicht 🍰`;
+    // Joker-Info
+    const jk = $('jokerInfo');
+    if (!started) jk.textContent = '🃏 Joker gibt es für jeden zuckerfreien Sonntag und mit 1 : 10 Chance beim Rubbellos, Glücksrad & Co.';
+    else {
+      const jc = jokerCount();
+      jk.textContent = `🃏 Joker: ${jc}. Neue gibt's für jeden zuckerfreien Sonntag und mit 1 : 10 Chance bei den Gewinnspielen.`;
+    }
+
+    // Verlauf (abgeschlossene + aktuelle Woche, neueste zuerst)
+    const hist = $('hist');
+    const weeks = allWeeks().slice().reverse();
+    if (!started || !weeks.length) { hist.innerHTML = '<li class="empty">Hier erscheinen deine Wochen.</li>'; }
+    else hist.innerHTML = weeks.map(m => {
+      const w = weekResult(m);
+      const isCur = +m === +mondayOf(t);
+      const label = `${fmtDate(m)}–${fmtDate(addDays(m, 6))}${isCur ? ' (läuft)' : ''}`;
+      const icon = w.bonus ? '🏆' : w.base ? '✅' : w.failed ? '–' : '⏳';
+      return `<li><span>${icon} ${label}</span><span class="amt ${w.earned ? '' : 'zero'}">${w.earned ? '−' + euro(w.earned) : '0 €'}</span></li>`;
+    }).join('');
+
+    if (typeof curTab !== 'undefined' && curTab === 'Progress') renderStats();
+    if (typeof curTab !== 'undefined' && curTab === 'Coll') renderCollection();
+    // Schulden-Zeile auf der Startseite
+    $('dmLabel').textContent = T().card;
+    $('dmVal').textContent = euro(shownAmount(earned));
+    $('dmFill').style.width = (goalAmount() ? Math.min(100, earned / goalAmount() * 100) : 0) + '%';
+
+    // Einstellungen
+    const setIf = (id, v) => { if (document.activeElement !== $(id)) $(id).value = v; };
+    setIf('setDebt', state.startDebt || '');
+    setIf('setPerWeek', state.perWeek || '');
+    setIf('setSatBonus', state.satBonus || '');
+    setIf('setPayout', state.payout || '');
+    $('setGoalMode').value = isSave() ? 'save' : 'debt';
+    $('setDebtL').textContent = isSave() ? 'Sparziel (€, optional)' : 'Schulden insgesamt (€)';
+    setIf('setStart', state.startDate);
+    setIf('setName', state.name || '');
+    $('setGebaeck').checked = state.gebaeck !== false;
+    $('setGebaeckStart').disabled = $('setGebaeckEnd').disabled = state.gebaeck === false;
+    $('setMode').value = state.mode || 'random';
+    $('setRitual').value = state.ritual || 'random';
+    $('setPrize').value = state.prizeMode || '';
+    renderVouchers();
+    setIf('setGebaeckStart', state.gebaeckStart);
+    setIf('setGebaeckEnd', state.gebaeckEnd);
+    $('gebaeckRule').textContent = state.gebaeck !== false
+      ? `🎄 Gebäckmodus ${gebaeckRange()}: bis zu ${COOKIE_LIMIT} Plätzchen am Tag erlaubt.` : '';
+    $('gebaeckRule').hidden = state.gebaeck === false;
+  }
+
+  // ---------- Eintragen: verdiente, aber noch nicht eingetragene Beträge ----------
+  function weekDecided(mon) {
+    const r = weekResult(mon);
+    return today() >= addDays(mon, 6) || r.bonus || r.satNo || r.failed;
+  }
+  function pendingPayout() {
+    const booked = state.booked || {};
+    return allWeeks().filter(weekDecided).map(m => ({ mon: m, amount: weekResult(m).earned - (booked[ymd(m)] || 0) }))
+      .filter(x => x.amount > 0);
+  }
+  // Zentrales Popup: muss ausdrücklich bestätigt oder vertagt werden (kein Wegtippen)
+  let payoutSnoozed = false;
+  function maybePayout() {
+    const sp = pendingPayout();
+    if (!sp.length || payoutSnoozed) return false;
+    if (['sheet', 'game', 'reward', 'payPop'].some(id => !$(id).hidden)) return false;
+    const sum = sp.reduce((a, x) => a + x.amount, 0);
+    $('spAmount').textContent = '−' + euro(sum);
+    const pn = payoutName();
+    $('spTitle').textContent = pn ? `${pn}-Zeit!` : 'Belohnung eintragen!';
+    $('spSteps').innerHTML = pn
+      ? `<li>Öffne <b>${pn.replace(/</g, '&lt;')}</b></li><li>Trag ${isSave() ? 'die Belohnung' : 'eine <b>Rückzahlung</b>'} über den Betrag ein</li><li>Komm zurück und tipp unten auf ✓</li>`
+      : `<li>Tragt ${isSave() ? 'die Belohnung' : 'die Rückzahlung'} bei euch ein (z. B. in eurer Abrechnungs-App)</li><li>Dann unten auf ✓ tippen</li>`;
+    $('spDone').textContent = pn ? `✓ In ${pn} eingetragen` : '✓ Eingetragen';
+    $('spText').innerHTML = `${isSave() ? 'Du hast' : 'Du darfst'} <b>${euro(sum)}</b> ${isSave() ? 'verdient' : 'deiner Schulden abziehen'} (Woche ${sp.map(x => `${fmtDate(x.mon)}–${fmtDate(addDays(x.mon, 6))}`).join(', ')}).`;
+    const ov = $('payPop'); ov.classList.remove('closing'); ov.hidden = false;
+    const box = ov.querySelector('.reward-box'); box.style.animation = 'none'; box.offsetHeight; box.style.animation = '';
+    FX.play('muenzen'); FX.haptic([0, 80, 160]);
+    return true;
+  }
+  function markBooked() {
+    state.booked = state.booked || {};
+    pendingPayout().forEach(x => { state.booked[ymd(x.mon)] = weekResult(x.mon).earned; });
+    save(); render(); FX.play('muenzen'); toast('Eingetragen ✓');
+  }
+  $('spDone').onclick = () => closeOverlay($('payPop'), () => { markBooked(); FX.play('konfetti'); });
+  $('spLater').onclick = () => { payoutSnoozed = true; closeOverlay($('payPop'), () => toast('Okay – ich erinnere dich beim nächsten Öffnen 💸')); };
+
+  // ---------- Einhorny: Maskottchen mit Stimmungen ----------
+  const MOODS = {
+    aufgeregt: { acc: '🚀', fx: 'sparkle', say: ['Morgen geht\'s los! Ich bin sooo aufgeregt!', 'Bereit für unser Abenteuer? 🦄✨', 'Ich hab schon Glitzer bereitgelegt!', 'Ich hab extra meine Mähne gekämmt! 💇', 'Countdown läuft… 3… 2… 1… fast! 🚀', 'Zucker, zieh dich warm an!'] },
+    schlaeft:  { acc: '',   fx: 'zzz',     say: ['Zzz… weck mich heute Abend zum Check-in.', 'Ich spar Energie für deinen Check-in… zzz', 'Psst, ich träume von zuckerfreien Wolken.', '*schnarch* … nur noch 5 Minuten …', 'Ich träume von 0 € Schulden… 😴', 'Weck mich, wenn\'s Abend ist 🌙', 'Mrrrmpf… Glitzer…'] },
+    wartet:    { acc: '🌙', fx: 'sparkle', say: ['Es ist Check-in-Zeit! Wie war dein Tag?', 'Ich warte schon auf dich! 🌙', 'Komm, erzähl mir von deinem Tag!', 'Tipp mich nicht an, tipp auf Check-in! 😄', 'Na, wie lief\'s heute? Ich bin neugierig!', 'Ich hab schon die Konfetti-Kanone geladen 🎉', 'Bereit für deine Belohnung?'] },
+    gefahr:    { acc: '😰', fx: 'sweat',   say: ['Unsere {n}-Tage-Serie ist in Gefahr! Schnell einchecken!', 'Ahhh! Vergiss mich nicht – die Serie!', 'Nur noch ein Check-in bis Mitternacht… bitte!', 'Ich kann nicht hinsehen… bitte check ein! 🙈', 'Die Flamme flackert! 🔥😰', 'Rette unsere Serie! Ich zähl auf dich!'] },
+    gluecklich:{ acc: '✨', fx: 'sparkle', say: ['Du bist der Wahnsinn! 💖', 'Zuckerfrei? Ich bin so stolz auf dich!', 'Heute warst du stärker als jeder Keks!', 'Ich mach Luftsprünge für dich! 🦄', 'Zuckerfrei steht dir richtig gut!', 'Heute gibt\'s Extra-Glitzer! ✨', 'Du + ich = unschlagbar 💖'] },
+    feuer:     { acc: '🔥', fx: 'fire',    say: ['{n} Tage in Folge! Wir brennen! 🔥', 'Unaufhaltsam! {n}er-Serie!', 'Niemand stoppt uns – {n} Tage!', 'Heiß, heißer, du! 🔥', 'Diese Serie ist legendär!', 'Ich brauch Sonnencreme, so heiß läuft\'s! 🧴'] },
+    traurig:   { acc: '',   fx: 'tear',    say: ['Schon okay… morgen schaffen wir\'s zusammen. 💛', 'Ich hab dich trotzdem lieb.', 'Ein Tag ist nur ein Tag. Wir machen weiter!', 'Kopf hoch, Krone richten 👑', 'Ich nehm dich in den Huf 🫂', 'Fehler gehören dazu. Aufgeben nicht!', 'Morgen glitzern wir wieder ✨'] },
+    party:     { acc: '🥳', fx: 'party',   say: ['WOCHE GESCHAFFT! Party! 🎉', 'Die {e} gehören dir! 💰', 'Ich tanze für dich! 💃', 'Konfetti überall! 🎊', 'Ich hab den ganzen Stall eingeladen! 🎉', 'Wer hat die Woche gerockt? DU!'] },
+    chillen:   { acc: '😎', fx: 'none',    say: ['Sonntag! Heute wird gechillt.', 'Füße hoch – morgen startet eine neue Woche.', 'Sonntag zählt nicht. Genieß es! 🍰', 'Heute nur Netflix und Glitzer 📺', 'Sonntags bin ich ein Faultier-Einhorn 🦥', 'Kraft tanken für Montag!'] },
+    weihnacht: { acc: '🎄', fx: 'snow',    say: ['Gebäckmodus aktiv! Max. {c} Plätzchen 🍪', 'Ho ho ho – zuckerfrei durch den Advent!', 'Ein, zwei Plätzchen sind okay. Drei nicht! 🍪', 'Ich hab Lebkuchen gesehen… und widerstanden! 🎄', 'Jingle Bells, zuckerfrei! 🔔', 'Plätzchen zählen ist mein neues Hobby 🍪'] },
+    schuldenfrei: { acc: '👑', fx: 'party', say: ['ZIEL ERREICHT! Du bist eine Legende! 👑', 'Wir haben es geschafft!!!'] }
+  };
+  const PET = ['Uiii, nicht so stürmisch 😏', 'Mehr davon und ich werd Einhorny 🫣', 'Ey, Pfoten weg vom Horn! …okay, noch einmal.', 'Bro, ich bin kein Touchscreen. Doch, bin ich.', 'Digga, das kitzelt 😂', 'Hihi, das kitzelt!', 'Mehr Streicheleinheiten! 🦄', 'Du bist die Beste!', '*glitzer glitzer*', 'Hast du heute schon Wasser getrunken? 💧', 'Ich glaub an dich!', 'Neeeigh! 🦄'];
+
+  function mascotMood(t, started) {
+    const key = ymd(t), e = state.days[key], wi = idx(t), h = new Date().getHours();
+    if (started && goalReached(totalEarned())) return 'schuldenfrei';
+    if (!started) return 'aufgeregt';
+    if (e) {
+      const s = wi === 6 ? null : dayStatus(key);
+      if (s === 'no') return 'traurig';
+      const r = weekResult(mondayOf(t));
+      if (wi >= 4 && r.base) return 'party';
+      if (wi === 6) return gebaeck(key) ? 'weihnacht' : 'chillen';
+      return streakAt(key) >= 3 ? 'feuer' : 'gluecklich';
+    }
+    if (wi === 6) return gebaeck(key) ? 'weihnacht' : 'chillen';
+    const y = addDays(t, -1);
+    if (idx(y) < 6 && dayStatus(ymd(y)) === 'no' && h < 18 && h >= DAY_START_HOUR) return 'traurig';
+    const evening = h >= EVENING_HOUR || h < DAY_START_HOUR;
+    const streak = streakAt(ymd(addDays(t, -1 - (idx(t) === 0 ? 1 : 0))));
+    if (evening && (h >= 21 || h < DAY_START_HOUR) && streak >= 2) return 'gefahr';
+    if (evening) return 'wartet';
+    if (gebaeck(key)) return 'weihnacht';
+    return 'schlaeft';
+  }
+  let lastMood = null, lastSay = '', lastJokers = null;
+  function renderMascot(t, started) {
+    const mood = mascotMood(t, started), m = MOODS[mood];
+    const streak = streakAt(state.days[ymd(t)] ? ymd(t) : ymd(addDays(t, -1)));
+    const fill = x => x.replace('{n}', Math.max(streak, 2)).replace('{e}', euro(weekResult(mondayOf(t)).earned || BASE)).replace('{c}', COOKIE_LIMIT);
+    if (mood !== lastMood) { lastSay = fill(pick(m.say)); }
+    $('uni').className = 'uni-wrap m-' + mood;
+    $('uniAcc').textContent = m.acc;
+    $('uniFx').className = 'uni-fx fx-' + m.fx;
+    $('uniFx').innerHTML = { zzz: '<i>z</i><i>z</i><i>Z</i>', tear: '<i>💧</i>', sweat: '<i>💦</i><i>💦</i>', sparkle: '<i>✨</i><i>✨</i><i>✦</i>',
+      fire: '<i>🔥</i><i>✨</i>', party: '<i>🎉</i><i>🎊</i><i>✨</i>', snow: '<i>❄️</i><i>❄️</i><i>🍪</i>', none: '' }[m.fx] || '';
+    if (mood !== lastMood) { const b = $('uniSay'); b.classList.remove('pop'); b.offsetHeight; b.classList.add('pop'); }
+    $('uniSay').textContent = lastSay;
+    const lvl = Math.floor(Math.max(0, totalEarned()) / 100) + 1;
+    $('uniLvl').textContent = `Einhorny · Level ${lvl}`;
+    const jb = $('jokerBadge'), jn = started ? jokerCount(ymd(t)) : 0;
+    jb.hidden = !started;
+    if (lastJokers != null && jn > lastJokers) { jb.classList.remove('gain'); jb.offsetHeight; jb.classList.add('gain'); }
+    $('jokerN').textContent = jn;
+    jb.classList.toggle('zero', jn === 0);
+    lastJokers = jn;
+    lastMood = mood;
+  }
+  // Einhornys "Gehirn": Sprüche, die sich auf den aktuellen Stand beziehen
+  function situational() {
+    const t = today(), key = ymd(t), wi = idx(t), h = new Date().getHours();
+    const start = parse(state.startDate);
+    if (t < start) return [];
+    const L = [];
+    const nm = state.name ? state.name : 'du';
+    applyDeal();
+    const earned = totalEarned(), remaining = Math.max(0, goalAmount() - earned);
+    const pct = goalAmount() ? earned / goalAmount() * 100 : 0;
+    const e = state.days[key];
+    const r = weekResult(mondayOf(t));
+    const streakNow = streakAt(e ? key : ymd(addDays(t, -1 - (wi === 0 ? 1 : 0))));
+    const best = bestStreak();
+    const dayNo = Math.round((t - start) / 864e5) + 1;
+
+    // Fortschritt
+    const ga = goalAmount();
+    if (earned > 0) L.push(isSave() ? `Schon ${euro(earned)} gesammelt! 💰` : `Schon ${euro(earned)} weg! Noch ${euro(remaining)} 💸`);
+    if (ga && pct >= 1) L.push(`${pct.toFixed(pct < 10 ? 1 : 0).replace('.', ',')} % ${isSave() ? 'vom Ziel geschafft!' : 'der Schulden sind schon Geschichte!'}`);
+    const nextMile = Math.ceil((earned + .01) / 100) * 100;
+    if (!ga || remaining > 0) L.push(`Noch ${euro(nextMile - earned)} bis zur ${nextMile}-€-Marke!`);
+    if (ga && remaining > 0 && BASE + BONUS > 0) L.push(`Mit perfekten Wochen ${isSave() ? 'hast du dein Ziel' : 'bist du'} in ca. ${Math.ceil(remaining / (BASE + BONUS))} Wochen ${isSave() ? 'erreicht' : 'schuldenfrei'} 👑`);
+    if (ga && remaining > 0 && remaining < 200) L.push(`Unter 200 € bis zum Ziel! Ich kann es fast schmecken! 🤤`);
+    L.push(`Tag ${dayNo} unserer Challenge – ${dayNo > 30 ? 'wir sind ein eingespieltes Team!' : 'wir sind gerade erst warm!'}`);
+
+    // Diese Woche
+    if (wi < 5 && !r.failed && !r.base) {
+      const left = 5 - r.yesCount;
+      L.push(`Noch ${left} ${left === 1 ? 'Tag' : 'Tage'} bis zu den ${euro(BASE)} diese Woche!`);
+      if (left <= 2) L.push(`So nah dran! Nur noch ${left} ${left === 1 ? 'Tag' : 'Tage'}! 😍`);
+    }
+    if (r.base && !r.bonus && !r.satNo) L.push(`${euro(BASE)} sind im Sack! Samstag holt dir noch +${euro(BONUS)} 💰`);
+    if (r.bonus) L.push(`Perfekte Woche! ${euro(BASE + BONUS)} – ich bin sprachlos 🏆`);
+    if (r.failed) L.push('Diese Woche gibt\'s kein Geld – aber jeder zuckerfreie Tag ist trotzdem Training 💪');
+
+    // Wochentag & Tageszeit
+    if (wi === 0 && BASE) L.push(`Montag! Frische Woche, frische ${euro(BASE)} 🌱`);
+    if (wi === 2) L.push('Bergfest! Die Hälfte der Woche ist fast geschafft ⛰️');
+    if (wi === 4 && BASE) L.push(`Freitag! Heute entscheidet sich, ob die ${euro(BASE)} kommen!`);
+    if (wi === 5 && BONUS) L.push(r.base ? `Bonus-Samstag! +${euro(BONUS)} warten auf dich 💰` : 'Samstag – heute zählt nur für den Bonus.');
+    if (wi === 6) L.push('Sonntag. Ich lieg auf dem Sofa und glitzere vor mich hin 🛋️');
+    if (h >= 4 && h < 10) L.push(`Guten Morgen, ${nm}! Neuer Tag, neue Chance ☀️`);
+    if (h >= 14 && h < 17) L.push('Nachmittagstief? Lieber ein Wasser oder ein Zero-Drink 💧');
+    if (h >= 17 && h < 20 && !e) L.push('Gleich ist Check-in-Zeit. Halt noch durch! 🌙');
+    if ((h >= 22 || h < 4) && !e) L.push('Es ist spät… Check-in nicht vergessen, bevor du schläfst! 😴');
+
+    // Serie & Rekord
+    if (streakNow >= 2) L.push(`🔥 ${streakNow} Tage am Stück zuckerfrei!`);
+    if (best > 0 && streakNow > 0 && streakNow < best) L.push(`Noch ${best - streakNow} ${best - streakNow === 1 ? 'Tag' : 'Tage'} bis zu deinem Rekord von ${best}!`);
+    if (best >= 3 && streakNow >= best) L.push(`NEUER REKORD: ${streakNow} Tage! Ich flipp aus! 🤯`);
+    if (streakNow === 0 && best > 0) L.push(`Dein Rekord liegt bei ${best} Tagen. Den knacken wir! 💪`);
+
+    // Gestern
+    const y = addDays(t, -1);
+    if (y >= start && idx(y) < 6) {
+      const ys = dayStatus(ymd(y));
+      if (ys === 'yes') L.push(`Gestern ${state.days[ymd(y)] && state.days[ymd(y)].joker ? 'hat dich der Joker gerettet 🃏' : 'zuckerfrei – richtig stark!'}`);
+      if (ys === 'no') L.push(state.days[ymd(y)] ? 'Gestern war hart. Heute zeigen wir\'s dem Zucker!' : 'Gestern hast du den Check-in vergessen… heute nicht, okay? 🥺');
+    }
+
+    // Joker
+    const jc = jokerCount(key);
+    if (jc > 1) L.push(`Du hast ${jc} Joker in der Tasche 🃏 – Sicherheitsnetz deluxe!`);
+    else if (jc === 1) L.push('Ein Joker ist noch da 🃏 – aber lieber nicht brauchen!');
+    else L.push('Keine Joker mehr – jetzt vorsichtig! Ein zuckerfreier Sonntag oder ein Gewinnspiel bringt neue 🃏');
+    if (wi === 6 && !e) L.push('Zuckerfreier Sonntag = +1 Joker! Lohnt sich 😉🃏');
+    if (wi === 5) L.push('Morgen ist Sonntag – zuckerfrei bleiben gibt einen Extra-Joker 🃏');
+
+    // Eintragen-Erinnerung
+    const sp = pendingPayout();
+    if (sp.length) L.push(`Psst… du darfst ${euro(sp.reduce((a, x) => a + x.amount, 0))} ${payoutName() ? 'in ' + payoutName() : 'bei euch'} eintragen! 💸`);
+
+    // Statistik-Häppchen
+    const all = Object.values(state.days);
+    const zero = all.reduce((a, x) => a + (x.zero || 0), 0), prot = all.reduce((a, x) => a + (x.protein || 0), 0);
+    if (zero >= 5) L.push(`Schon ${zero} Zero-Drinks statt Zucker – clever! 🧃`);
+    if (prot >= 5) L.push(`${prot} Proteindrinks! Bald hebst du mich hoch 💪🦄`);
+    const counted = [];
+    for (let d = start; d < t; d = addDays(d, 1)) if (idx(d) < 6) counted.push(dayStatus(ymd(d)));
+    if (counted.length >= 5) {
+      const rate = Math.round(counted.filter(x => x === 'yes').length / counted.length * 100);
+      L.push(rate >= 80 ? `${rate} % Erfolgsquote. Das ist Champions-Level 🏅` : `${rate} % Erfolgsquote – da geht noch was, ich glaub an dich!`);
+      const per = [0, 1, 2, 3, 4, 5].map(i => {
+        const xs = []; for (let d = start; d < t; d = addDays(d, 1)) if (idx(d) === i) xs.push(dayStatus(ymd(d)));
+        return { i, n: xs.length, r: xs.length ? xs.filter(x => x === 'yes').length / xs.length : 1 };
+      }).filter(x => x.n >= 2);
+      if (per.length) {
+        const worst = per.reduce((a, b) => b.r < a.r ? b : a);
+        if (worst.r < 1 && worst.i === wi) L.push(`${WD_LONG[wi]} ist dein schwierigster Tag – heute extra stark bleiben! 🛡️`);
+      }
+    }
+
+    // Heute schon eingecheckt
+    if (e && wi < 6) {
+      if (dayStatus(key) === 'yes') L.push(pick(['Heute erledigt ✅ Jetzt nur noch schön schlafen!', 'Check-in done! Du darfst jetzt stolz ins Bett 😌']));
+      if ((e.zero || 0) > 0) L.push(`${e.zero} Zero-Drink${e.zero > 1 ? 's' : ''} heute – Zucker? Nö! 😎`);
+      if ((e.protein || 0) > 0) L.push(`Heute ${e.protein}× Protein. Muskel-Einhorn approved 💪`);
+    }
+    // Gebäckmodus
+    if (gebaeck(key)) {
+      L.push(`Advent, Advent… max. ${COOKIE_LIMIT} Plätzchen, dann ist Schluss! 🍪`);
+      if (e && e.cookies != null) L.push(e.cookies <= COOKIE_LIMIT ? `Plätzchen heute im Rahmen – sehr diszipliniert 🎄` : `${COOKIE_LIMIT + 1}+ Plätzchen… das war ein Keks zu viel 🙈`);
+    }
+    return L;
+  }
+
+  // Einhorny redet von selbst: neuer Spruch alle ~7 s, ab und zu ein Tipp, manchmal ein Hüpfer
+  const TIPS = ['Tipp: Ein Glas Wasser hilft gegen Süßhunger 💧', 'Tipp: Zero-Drinks sind erlaubt! 🧃', 'Ein Proteindrink macht satt und zählt nicht 💪',
+    'Weißt du was? Du machst das richtig gut.', 'Jeder zuckerfreie Tag bringt dich näher an 0 € 💸', 'Obst ist kein Zucker-Verbrechen 🍓',
+    'Ich zähle die Tage bis Samstag-Bonus! 💰', 'Hab ich schon gesagt, dass du toll bist? ✨'];
+  // Freche Halbstarken-Sprüche (kommen ab und zu dazwischen)
+  const CHEEKY = [
+    'Digga, Zucker ist sowas von cringe 💀', 'Bro, das Gummibärchen guckt dich an. Ignorier den Lauch.', 'Sheesh, du bist heute on fire 🔥 no cap',
+    'Wallah, wenn du jetzt Cola trinkst, bin ich beleidigt.', 'Lowkey stolz auf dich. Highkey auch.', 'Ey, Schokolade ist auch nur braunes Fett mit Ego.',
+    'Was guckst du? Check ein, Diggi.', 'Ehrenfrau-Move: heute kein Zucker. Ehrenlos: Gummibärchen.', 'Zucker? Kenn ich nicht. Nie gehört. Wer ist das?',
+    'Bist du gerade an der Süßigkeiten-Schublade? Ich seh alles 👀', 'Ich schwör, ein Keks hat mich gerade dumm angemacht.',
+    'Sus: du bist auffällig nah am Kühlschrank 🤨', 'Brudi, zuckerfrei ist das neue Gym. Lass pumpen 💪',
+    'Ich hab mehr Glitzer als du Willenskraft. …Spaß, du bist ein Biest 💪', 'Mach mal Check-in, sonst gibt\'s Pferdeküsse 💋🐴',
+    'Junge Junge, wer hat dir erlaubt, so gut zu sein?', 'Bin heute bisschen toxic: Zucker ist dein Ex. Nicht zurückschreiben.',
+    'Slay. Einfach nur slay. 💅', 'Mies am Abliefern, nicht am Naschen. So muss das.', 'Gönn dir… Wasser. 💧 Ja ich weiß, enttäuschend.',
+    'Die Haribo-Gang hat Angst vor dir. Zu Recht.', 'Ich bin ein Einhorn, kein Babysitter. …okay, bisschen schon.',
+    'Bruh. Ein Donut hat dir gerade zugezwinkert. Block den.', 'Real talk: du bist krasser als jeder Energy-Drink.',
+    'Mies verliebt in deine Disziplin, ich sag\'s wie\'s ist 😳', 'Dein Süßhunger hat Hausverbot. Ich bin der Türsteher.',
+    'Nicht labern, abliefern. Du machst beides. Respekt.', 'Läuft bei dir. Also nicht der Zucker. Der läuft weg.',
+    'Ey, ich hab die Lebkuchen versteckt. Frag nicht wo.', 'Wenn Zucker anruft: Nummer blockieren, Handy weglegen, Glitzer an ✨',
+    'Bist du schon wieder an der Naschschublade? Ich hör das Rascheln! 👂🍬', 'Deine Gummibärchen haben mir geschrieben. Sie vermissen dich. Pech gehabt 🐻💔',
+    'Wer Zucker isst, muss mit mir diskutieren. Und ich bin anstrengend 😤', 'Ich riech Schokolade. Du? Nein? Gut. 👃🍫'
+  ];
+  const HORNY = [
+    'Ich heiß nicht umsonst Einhorny 😏', 'Zuckerfrei macht mich ganz… horny. Also Einhorn-y. 🦄😇',
+    'Willst du mein Horn sehen? …Es ist ein Einhorn-Horn. Was dachtest du denn? 😇', 'So viel Disziplin macht mich ganz wuschig 🫣',
+    'Zuckerfrei steht dir. Alles andere übrigens auch 😏', 'Schokolade ist nicht das einzig Süße heute Abend 😘',
+    'Mein Horn glüht. Liegt an dir. 🔥🦄', 'Ich bin Einhorny, nicht Einhorn-nie 😏', 'Kleiner Fun Fact: Einhörner stehen auf Durchhaltevermögen 😉',
+    'Du checkst ein, ich check dich ab 👀😏', 'Pssst… nach dem Check-in wartet vielleicht noch was Süßes. Ohne Zucker 😘'
+  ];
+  const CHEEKY_DANGER = ['Ey, die Serie stirbt gleich, mach mal hinne 💀', 'Digga, Check-in. Jetzt. Ich mein\'s ernst. 😤', 'Bro, wenn die Flamme ausgeht, heul ich. Und du auch.'];
+  const CHEEKY_SAD = ['Zucker hat gewonnen? Pff. Rückspiel morgen, Digga.', 'Egal, Kopf hoch. Wir boxen den Zucker morgen weg 🥊'];
+  const recent = [];
+  let holdUntil = 0;                     // Streicheln / Mega-Modus nicht überschreiben
+  function chatter() {
+    if (performance.now() < holdUntil) return;
+    if (document.hidden || !$('sheet').hidden || !$('reward').hidden || !$('game').hidden || !lastMood) return;
+    const t = today(), m = MOODS[lastMood];
+    const streak = streakAt(state.days[ymd(t)] ? ymd(t) : ymd(addDays(t, -1)));
+    const fill = x => x.replace('{n}', Math.max(streak, 2)).replace('{e}', euro(weekResult(mondayOf(t)).earned || BASE)).replace('{c}', COOKIE_LIMIT);
+    const roll = Math.random();
+    const calm = ['traurig', 'gefahr'].includes(lastMood);
+    const cheeky = lastMood === 'gefahr' ? CHEEKY_DANGER : lastMood === 'traurig' ? CHEEKY_SAD : CHEEKY;
+    const src = !calm && roll < .07 ? HORNY : roll < .18 ? cheeky : roll < .52 ? m.say.map(fill) : roll < .88 || calm ? situational() : TIPS;
+    let pool = src.filter(x => x !== lastSay && !recent.includes(x));
+    if (!pool.length) pool = m.say.map(fill).filter(x => x !== lastSay);
+    if (!pool.length) return;
+    lastSay = pick(pool);
+    recent.push(lastSay); if (recent.length > 8) recent.shift();
+    const b = $('uniSay');
+    b.textContent = lastSay;
+    b.classList.remove('pop'); b.offsetHeight; b.classList.add('pop');
+    if (Math.random() < .35) { const u = $('uni'); u.classList.remove('petted'); u.offsetHeight; u.classList.add('petted'); }
+  }
+  setInterval(chatter, 9000);
+
+  // Easter Egg: 10 Klicks in 4 Sekunden → Mega-Modus
+  const clicks = [];
+  function megaMode() {
+    const u = $('uni'), b = $('uniSay');
+    u.classList.add('mega');
+    document.body.classList.add('quake');
+    b.textContent = 'EINHORN-MEGA-MODUS!!! 🦄🦄🦄';
+    b.classList.remove('pop'); b.offsetHeight; b.classList.add('pop');
+    FX.megaUnicorns();
+    FX.haptic([0, 80, 160, 240, 320, 400, 600, 800]);
+    setTimeout(() => document.body.classList.remove('quake'), 700);
+    holdUntil = performance.now() + 5000;
+    clearTimeout(u._t);
+    u._t = setTimeout(() => { u.classList.remove('mega'); b.textContent = lastSay; }, 5000);
+  }
+  $('jokerBadge').onclick = () => {
+    const jc = jokerCount(), sun = sundaysEarned(), bonus = state.bonusJokers || 0;
+    const b = $('uniSay');
+    b.textContent = jc === 0
+      ? 'Keine Joker gerade 🙈 Hol dir einen mit einem zuckerfreien Sonntag – oder mit Glück beim Gewinnspiel (1 : 10)!'
+      : `${jc} Joker im Konto 🃏 (verdient: ${sun}× Sonntag, ${bonus}× gewonnen). Einsetzen kannst du sie im Check-in.`;
+    b.classList.remove('pop'); b.offsetHeight; b.classList.add('pop');
+    holdUntil = performance.now() + 4500;
+    FX.tap();
+    const jb = $('jokerBadge'); jb.classList.remove('gain'); jb.offsetHeight; jb.classList.add('gain');
+  };
+  $('uni').onclick = () => {
+    const now = performance.now();
+    clicks.push(now);
+    while (clicks.length && now - clicks[0] > 4000) clicks.shift();
+    if (clicks.length >= 10) { clicks.length = 0; return megaMode(); }
+    const u = $('uni');
+    u.classList.remove('petted'); u.offsetHeight; u.classList.add('petted');
+    const r = $('uniBody').getBoundingClientRect();
+    FX.sparkle(r.left + r.width / 2, r.top + r.height / 3, '#ff8fab');
+    FX.haptic([0, 60]);
+    const b = $('uniSay');
+    b.textContent = pick(PET);
+    b.classList.remove('pop'); b.offsetHeight; b.classList.add('pop');
+    holdUntil = performance.now() + 2600;
+    clearTimeout(u._t);
+    u._t = setTimeout(() => { b.textContent = lastSay; }, 2600);
+  };
+
+  // ---------- Glänzende Abzeichen auf der Startseite ----------
+  function renderShiny(t, started) {
+    const row = $('shinyRow');
+    if (!started) { row.innerHTML = ''; return; }
+    const key = ymd(t);
+    const streak = streakAt(state.days[key] ? key : ymd(addDays(t, -1 - (idx(t) === 0 ? 1 : 0))));
+    const best = bestStreak();
+    const perfect = allWeeks().filter(m => weekDecided(m) && weekResult(m).bonus).length;
+    const stickers = Object.values(state.stickers || {}).reduce((a, b) => a + b, 0);
+    const vouch = (state.wonVouchers || []).filter(v => !v.used).length;
+    const badges = [
+      { id: 'streak', e: '🔥', v: streak, l: 'Serie', tier: streak >= 10 ? 'gold' : streak >= 5 ? 'silver' : streak >= 1 ? 'bronze' : 'off',
+        say: streak ? `${streak} Tage am Stück! ${best > streak ? `Rekord: ${best}` : 'Das ist dein Rekord! 🏅'}` : 'Heute starten wir eine neue Serie 🔥' },
+      { id: 'best', e: '🏅', v: best, l: 'Rekord', tier: best >= 15 ? 'gold' : best >= 7 ? 'silver' : best ? 'bronze' : 'off', say: `Dein Rekord: ${best} Tage zuckerfrei am Stück 🏅` },
+      { id: 'perfect', e: '🏆', v: perfect, l: 'Perfekt', tier: perfect >= 5 ? 'gold' : perfect >= 2 ? 'silver' : perfect ? 'bronze' : 'off', say: `${perfect} perfekte Wochen (Mo–Sa) 🏆` },
+      { id: 'stickers', e: '🌟', v: stickers, l: 'Sticker', tier: stickers >= 20 ? 'gold' : stickers >= 8 ? 'silver' : stickers ? 'bronze' : 'off',
+        say: stickers ? `Deine Sammlung: ${Object.entries(state.stickers).map(([e, n]) => n > 1 ? e + '×' + n : e).join(' ')}` : 'Sticker gibt\'s im Rubbellos und am Glücksrad 🎟️' },
+      { id: 'vouch', e: '🎟️', v: vouch, l: 'Coupons', tier: vouch ? 'gold' : 'off',
+        say: vouch ? `Offene Gutscheine: ${(state.wonVouchers || []).filter(v => !v.used).map(v => v.t).join(', ')} 😏` : 'Noch keine Gutscheine – vielleicht beim nächsten Rubbellos!' }
+    ];
+    row.innerHTML = badges.map((b, i) => `<button class="shiny ${b.tier}" data-sh="${b.id}" style="animation-delay:${i * .08}s"><span class="sh-e">${b.e}</span><span class="sh-v">${b.v}</span><span class="sh-l">${b.l}</span></button>`).join('');
+    row.querySelectorAll('[data-sh]').forEach(el => el.onclick = () => {
+      const b = badges.find(x => x.id === el.dataset.sh);
+      toast(b.say);
+      el.classList.remove('tapped'); el.offsetHeight; el.classList.add('tapped');
+      const r = el.getBoundingClientRect(); FX.sparkle(r.left + r.width / 2, r.top + r.height / 2, '#ffd93d'); FX.tap();
+    });
+  }
+
+  // ---------- Sammlung (eigener Tab) ----------
+  function renderCollection() {
+    const el = $('collCard');
+    let html = '';
+    const stCount = Object.values(state.stickers || {}).reduce((a, b) => a + b, 0);
+    const uniCount = COLLECT.filter(c => (state.collection || {})[c.id]).length;
+    const bossWon = bossHistory().filter(x => x.r.base).length;
+    const vOpen = (state.wonVouchers || []).filter(v => !v.used).length;
+    html += `<div class="coll-sum">
+      <div><b>🦄 ${uniCount}/${COLLECT.length}</b><span>Einhörner</span></div>
+      <div><b>🌟 ${stCount}</b><span>Sticker</span></div>
+      <div><b>💀 ${bossWon}</b><span>Bosse</span></div>
+      <div><b>🎟️ ${vOpen}</b><span>Gutscheine</span></div></div>`;
+    // Boss-Trophäen
+    const bh = bossHistory();
+    if (bh.length) {
+      const won = bh.filter(x => x.r.base).length;
+      html += `<div class="sub">⚔️ Boss-Trophäen <span class="muted">(${won} besiegt · ${bh.length - won} entkommen)</span></div>
+        <div class="troph">${bh.slice().reverse().map(x => `<div class="tr ${x.r.base ? 'won' : 'lost'}"><span class="tr-e">${x.b.e}</span><span class="tr-r">${x.r.bonus ? '💥' : x.r.base ? '💀' : '😈'}</span><small>${fmtDate(x.m)}</small></div>`).join('')}</div>`;
+    }
+    // Sammel-Einhörner
+    const col = state.collection || {};
+    const found = COLLECT.filter(c => col[c.id]).length;
+    html += `<div class="sub">🦄 Einhorn-Sammlung <span class="muted">(${found}/${COLLECT.length})</span></div>
+      <div class="coll">${COLLECT.map(c => col[c.id]
+        ? `<div class="cl ${c.r}" title="${c.n}">${collectHTML(c)}<small>${c.n.replace('-Einhorny', '')}${col[c.id] > 1 ? ' ×' + col[c.id] : ''}</small></div>`
+        : `<div class="cl locked ${c.r}"><span class="cu">❔</span><small>${Games.RARITY[c.r].n}</small></div>`).join('')}</div>`;
+    // Sammlung: Sticker & Gutscheine
+    const stk = Object.entries(state.stickers || {});
+    const wv = state.wonVouchers || [];
+    const allSt = STICKERS.concat(stk.map(([e]) => e).filter(e => !STICKERS.includes(e)));
+    html += `<div class="sub">🌟 Sticker-Album <span class="muted">(${stk.length}/${STICKERS.length} gefunden · 5× = Mama 🎀 · 10× = Oma 👓 · 20× = Uroma 👑 · 35× = Ur-Uroma 🌈)</span></div>
+      <div class="sticker-grid">${allSt.map(e => {
+        const n = (state.stickers || {})[e] || 0;
+        if (!n) return `<div class="sg locked"><span class="cu">❔</span><small>${STICKER_NAMES[e] || ''}</small></div>`;
+        const t = tierOf(n), nx = TIERS[t + 1], prevAt = TIERS[t].at;
+        const pct = nx ? Math.round((n - prevAt) / (nx.at - prevAt) * 100) : 100;
+        return `<div class="sg ${TIERS[t].cls}">${stickerHTML(e, t)}<b class="sg-n">×${n}</b>
+          <small>${stickerName(e, t)}</small>
+          <span class="sg-bar"><i style="width:${pct}%"></i></span>
+          <small class="sg-next">${nx ? `${n}/${nx.at} → ${nx.n} ${nx.acc}` : 'MAX 🏆'}</small></div>`;
+      }).join('')}</div>`;
+    if (wv.length) html += `<div class="sub">🎟️ Gewonnene Gutscheine</div>${wv.map((v, i) => `<label class="vch ${v.used ? 'used' : ''}"><input type="checkbox" data-vch="${i}" ${v.used ? 'checked' : ''}> 🎟️ ${v.t} <small>(${fmtDate(parse(v.d))})</small></label>`).join('')}`;
+    if (!bossHistory().length) html += '<div class="sub">⚔️ Boss-Trophäen</div><div class="empty">Besiegte Bosse landen hier.</div>';
+    if (!(state.wonVouchers || []).length) html += '<div class="sub">🎟️ Gutscheine</div><div class="empty">Gutscheine gewinnst du selten im Rubbellos & Co. – falls welche eingetragen sind 😏</div>';
+    el.innerHTML = html;
+    el.querySelectorAll('[data-vch]').forEach(cb => cb.onchange = () => { state.wonVouchers[cb.dataset.vch].used = cb.checked; save(); renderCollection(); });
+  }
+
+  // ---------- Statistik ----------
+  function bestStreak() {
+    let best = 0, cur = 0;
+    const start = parse(state.startDate), t = today();
+    for (let d = start; d <= t; d = addDays(d, 1)) {
+      if (idx(d) === 6) continue;
+      const s = dayStatus(ymd(d));
+      if (s === 'yes') { cur++; best = Math.max(best, cur); }
+      else if (s === 'no') cur = 0;           // heute noch offen bricht nichts ab
+    }
+    return best;
+  }
+  function renderStats() {
+    const el = $('statsBody');
+    const t = today(), start = parse(state.startDate);
+    const counted = [];                        // Mo–Sa mit Ergebnis
+    for (let d = start; d <= t; d = addDays(d, 1)) {
+      if (idx(d) === 6) continue;
+      const k = ymd(d), s = dayStatus(k);
+      if (s) counted.push({ d, k, s, e: state.days[k] });
+    }
+    if (!counted.length) { el.innerHTML = '<div class="empty">Statistiken erscheinen nach den ersten Check-ins.</div>'; return; }
+
+    const yes = counted.filter(x => x.s === 'yes').length;
+    const rate = Math.round(yes / counted.length * 100);
+    const doneWeeks = allWeeks().filter(weekDecided);
+    const wonWeeks = doneWeeks.filter(m => weekResult(m).base).length;
+    const perfect = doneWeeks.filter(m => weekResult(m).bonus).length;
+    const jokers = Object.values(state.days).filter(e => e.joker).length;
+    const sum = id => Object.values(state.days).reduce((a, e) => a + (e[id] || 0), 0);
+    const todayKey = ymd(t);
+    const curStreak = streakAt(state.days[todayKey] ? todayKey : ymd(addDays(t, idx(t) === 0 ? -2 : -1)));
+
+    const tile = (v, l) => `<div class="tile"><div class="tv">${v}</div><div class="tl">${l}</div></div>`;
+    let html = `<div class="tiles">
+      ${tile(`${yes}<small>/${counted.length}</small>`, 'zuckerfreie Tage')}
+      ${tile(`${rate}<small> %</small>`, 'Erfolgsquote')}
+      ${tile(`🔥 ${curStreak}`, 'aktuelle Serie')}
+      ${tile(`🏅 ${bestStreak()}`, 'beste Serie')}
+      ${tile(`${wonWeeks}<small>/${doneWeeks.length}</small>`, 'Wochen geschafft')}
+      ${tile(`🏆 ${perfect}`, 'perfekte Wochen')}
+      ${tile(`🧃 ${sum('zero')}`, 'Zero-Getränke')}
+      ${tile(`💪 ${sum('protein')}`, 'Proteindrinks')}
+      ${tile(`🃏 ${jokers}`, 'Joker eingesetzt')}
+      ${tile(`☀️ ${sundaysEarned()}`, 'Joker von Sonntagen')}
+      ${tile(`🍀 ${state.bonusJokers || 0}`, 'Joker gewonnen')}
+      ${tile(`🃏 ${jokerCount()}`, 'Joker übrig')}
+    </div>`;
+
+    // Kalender (neueste Woche oben, max. 12 Wochen)
+    const weeks = allWeeks().slice(-12).reverse();
+    html += `<div class="sub">Kalender</div><div class="cal">
+      <div class="cal-row cal-head"><span></span>${WD.map(w => `<span>${w}</span>`).join('')}</div>
+      ${weeks.map(m => `<div class="cal-row"><span class="cal-lbl">${fmtDate(m)}</span>${[0, 1, 2, 3, 4, 5, 6].map(i => {
+        const d = addDays(m, i), k = ymd(d), e = state.days[k];
+        const s = i < 6 ? dayStatus(k) : null;
+        const cls = d > t || d < start ? 'fut' : i === 6 ? (e ? 'sun has' : 'sun') : e && e.joker ? 'jok' : s || 'open';
+        const sym = cls === 'yes' ? '✓' : cls === 'no' ? '✕' : cls === 'jok' ? '🃏' : '';
+        return `<button class="cell ${cls}" data-day="${k}" ${d > t || d < start ? 'disabled' : ''} aria-label="${WD_LONG[i]} ${fmtDate(d)}">${sym}</button>`;
+      }).join('')}</div>`).join('')}
+    </div>
+    <div class="legend"><span><i class="cell yes">✓</i>geschafft</span><span><i class="cell no">✕</i>nicht geschafft</span><span><i class="cell jok">🃏</i>Joker</span><span><i class="cell sun has"></i>Sonntag</span></div>
+    <div class="detail" id="calDetail">Tipp auf einen Tag für Details.</div>`;
+
+    // Wochentage: Erfolgsquote Mo–Sa
+    const wd = [0, 1, 2, 3, 4, 5].map(i => {
+      const xs = counted.filter(x => idx(x.d) === i);
+      const y = xs.filter(x => x.s === 'yes').length;
+      return { i, n: xs.length, y, r: xs.length ? y / xs.length : null };
+    });
+    const rated = wd.filter(w => w.n);
+    const worst = rated.length > 1 ? rated.reduce((a, b) => b.r < a.r ? b : a) : null;
+    html += `<div class="sub">Erfolg nach Wochentag</div><div class="hbars">
+      ${wd.map(w => `<div class="hb" data-tip="${WD_LONG[w.i]}: ${w.y} von ${w.n} geschafft">
+        <span class="hb-l">${WD[w.i]}</span>
+        <span class="hb-track"><span class="hb-fill" style="width:${w.r == null ? 0 : Math.max(2, w.r * 100)}%"></span></span>
+        <span class="hb-v">${w.r == null ? '–' : Math.round(w.r * 100) + ' %'}${worst && worst.i === w.i && worst.r < 1 ? ' <em>schwierigster Tag</em>' : ''}</span>
+      </div>`).join('')}
+    </div>
+    <div class="detail" id="wdDetail">Tipp auf einen Tag für Details.</div>`;
+
+    // Zucker pro Woche (Mo–Sa), gestapelt: Süßgetränke + Süßigkeiten, letzte 8 Wochen
+    const wk = allWeeks().slice(-8).map(m => {
+      let dr = 0, sw = 0;
+      for (let i = 0; i < 6; i++) { const e = state.days[ymd(addDays(m, i))]; if (e) { dr += e.drinks || 0; sw += e.sweets || 0; } }
+      return { m, dr, sw };
+    });
+    const max = Math.max(1, ...wk.map(w => w.dr + w.sw));
+    html += `<div class="sub">Zucker pro Woche <span class="muted">(Mo–Sa)</span></div>
+    <div class="legend"><span><i class="sw s1"></i>Süßgetränke</span><span><i class="sw s2"></i>Süßigkeiten</span></div>
+    <div class="vbars">
+      ${wk.map(w => `<div class="vb" data-tip="Woche ${fmtDate(w.m)}: ${w.dr} Süßgetränke, ${w.sw} Süßigkeiten">
+        <span class="vb-v">${w.dr + w.sw || '0 🎉'}</span>
+        <span class="vb-stack">
+          ${w.sw ? `<span class="seg s2" style="height:${w.sw / max * 100}%"></span>` : ''}
+          ${w.dr ? `<span class="seg s1" style="height:${w.dr / max * 100}%"></span>` : ''}
+        </span>
+        <span class="vb-l">${fmtDate(w.m)}</span>
+      </div>`).join('')}
+    </div>
+    <div class="detail" id="barDetail">Tipp auf einen Balken für Details.</div>`;
+
+    el.innerHTML = html;
+
+
+    el.querySelectorAll('.cell[data-day]').forEach(c => c.onclick = () => {
+      const k = c.dataset.day, e = state.days[k], d = parse(k);
+      const s = idx(d) < 6 ? dayStatus(k) : null;
+      el.querySelectorAll('.cell.sel').forEach(x => x.classList.remove('sel'));
+      c.classList.add('sel');
+      $('calDetail').innerHTML = `<b>${WD_LONG[idx(d)]}, ${fmtDate(d)}</b> · ` + (e && !e.missed
+        ? `${countersFor(k).map(x => `${x.icon} ${showVal(x, e[x.id])}`).join('  ')}${e.joker ? ' · 🃏 Joker' : ''}`
+        : e && e.joker ? 'vergessen · 🃏 Joker' : s === 'no' ? 'kein Check-in' : idx(d) === 6 ? 'kein Eintrag' : 'noch offen')
+        + (state.sigs && state.sigs[k] ? `<br><img class="sig-img" src="${state.sigs[k]}" alt="Unterschrift">` : '');
+      FX.tap();
+    });
+    el.querySelectorAll('.vb, .hb').forEach(b => b.onclick = () => {
+      el.querySelectorAll('.vb.sel, .hb.sel').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel');
+      $(b.classList.contains('vb') ? 'barDetail' : 'wdDetail').textContent = b.dataset.tip;
+      FX.tap();
+    });
+  }
+
+  // ---------- Joker ----------
+  // Joker gibt es nur noch durch Gewinne (1 : 10 bei Rubbellos, Glücksrad, Geschenkbox, Kapselautomat)
+  // und für jeden zuckerfreien Sonntag. Sie bleiben, bis sie im Check-in eingesetzt werden.
+  // Früher eingesetzte 2-Wochen-Joker (joker: true / 'period') zählen weiter als gerettet, kosten aber nichts.
+  const jokerType = e => e && e.joker ? (e.joker === 'sunday' || e.joker === 'bank' ? 'bank' : 'legacy') : null;
+  function sundayFree(k) {
+    const e = state.days[k];
+    return !!e && !e.drinks && !e.sweets && (e.cookies || 0) <= COOKIE_LIMIT;
+  }
+  const sundaysEarned = () => {
+    const start = parse(state.startDate), t = today();
+    return Object.keys(state.days).filter(k => { const d = parse(k); return idx(d) === 6 && d >= start && d <= t && sundayFree(k); }).length;
+  };
+  const jokersEarned = () => sundaysEarned() + (state.bonusJokers || 0);
+  const jokersUsed = () => Object.values(state.days).filter(e => jokerType(e) === 'bank').length;
+  const jokerCount = () => Math.max(0, jokersEarned() - jokersUsed());
+  const jokerAvailable = () => jokerCount() > 0;
+
+  // ---------- Check-in ----------
+  // Zähler im Check-in. count = zählt für die Challenge (muss 0 sein)
+  const COUNTERS = [
+    { id: 'drinks',  icon: '🥤', name: 'Süßgetränke',  sub: 'mit Zucker',               count: true,  short: 'Süßgetränke', q: 'Wie viele Süßgetränke <b>mit Zucker</b> hattest du heute?' },
+    { id: 'sweets',  icon: '🍬', name: 'Süßigkeiten',  sub: 'mit Zucker',               count: true,  short: 'Süßigkeiten', q: 'Und Süßigkeiten <b>mit Zucker</b>?' },
+    { id: 'zero',    icon: '🧃', name: 'Getränke',     sub: 'ohne Zucker (Zero/Light)', count: false, short: 'Zero-Drinks', q: 'Wie viele Zero-/Light-Getränke <b>ohne Zucker</b>?' },
+    { id: 'protein', icon: '💪', name: 'Proteindrinks', sub: 'zählt nicht, nur Tracking', count: false, short: 'Protein', q: 'Proteindrinks heute? 💪' },
+    { id: 'cookies', icon: '🍪', name: 'Plätzchen',    sub: 'Gebäckmodus', count: false, limit: COOKIE_LIMIT, only: k => gebaeck(k), short: 'Plätzchen', q: 'Gebäckmodus 🎄 Wie viele Plätzchen?',
+      choice: [{ v: 0, label: `0–${COOKIE_LIMIT}` }, { v: COOKIE_LIMIT + 1, label: `${COOKIE_LIMIT + 1} oder mehr` }] }
+  ];
+  const countersFor = k => COUNTERS.filter(c => !c.only || c.only(k));
+  // Anzeige eines Werts (Plätzchen als "0–2" / "3+")
+  const showVal = (c, v) => c.choice ? (v == null ? '–' : v <= c.limit ? `0–${c.limit}` : `${c.limit + 1}+`) : (v || 0);
+  // ok(c, v): true = im grünen Bereich, false = bricht den Tag, null = zählt nicht
+  const okVal = (c, v) => c.count ? !v : c.limit != null ? v <= c.limit : null;
+  let sheetKey = null, draft = {}, sheetCounters = [], jokerSel = new Set(), sheetMissed = [], sheetHadJoker = false;
+  // Vergessene Tage dieser Woche (vor heute, ohne Check-in) – können im Check-in per Joker gerettet werden
+  function missedDays(k) {
+    const out = [], start = parse(state.startDate), d0 = parse(k);
+    for (let d = mondayOf(d0); d < d0; d = addDays(d, 1)) if (idx(d) < 6 && d >= start && !state.days[ymd(d)]) out.push(ymd(d));
+    return out;
+  }
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  function openSheet(k, prefill) {
+    sheetKey = k;
+    const e = state.days[k] || prefill;
+    // Neuer Check-in: Zufallswerte 1–3, damit bewusst eingestellt wird. Bearbeiten: gespeicherte Werte.
+    draft = {};
+    sheetCounters = countersFor(k);
+    sheetMissed = missedDays(k);
+    sheetHadJoker = !!(state.days[k] && state.days[k].joker);
+    jokerSel = new Set(sheetHadJoker ? [k] : []);
+    sheetCounters.forEach(c => { draft[c.id] = e ? (e[c.id] || 0) : c.choice ? null : 1 + Math.floor(Math.random() * 3); });
+    const d = parse(k);
+    $('sheetDay').textContent = (k === ymd(today()) ? 'Heute · ' : '') + `${WD_LONG[idx(d)]}, ${fmtDate(d)}` + (idx(d) === 6 ? ' · zählt nicht' : '');
+    $('sheetDelete').hidden = !state.days[k];
+    $('sheetHint').hidden = !!e;
+    $('counters').innerHTML = shuffle(sheetCounters).map((c, i) => `
+      <div class="counter ${e ? '' : 'todo'}" id="row_${c.id}" style="animation-delay:${.15 + i * .07}s">
+        <div class="what">${c.icon} ${c.name}<small>${c.sub}</small></div>
+        ${c.choice
+          ? `<div class="choice">${c.choice.map(o => `<button data-ch="${c.id}" data-v="${o.v}">${o.label}</button>`).join('')}</div>`
+          : `<div class="stepper"><button data-c="${c.id}" data-d="-1" aria-label="weniger">−</button><span class="n" id="n_${c.id}" data-ok="${c.id}"></span><button data-c="${c.id}" data-d="1" aria-label="mehr">+</button></div>`}
+      </div>`).join('');
+    $('counters').querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
+      const id = b.dataset.c, dir = Number(b.dataset.d);
+      const old = draft[id];
+      draft[id] = Math.max(0, Math.min(99, old + dir));
+      confirmRow(id);
+      if (draft[id] === old) { shake($('n_' + id)); FX.tap(); return; }   // schon bei 0
+      FX.tap();
+      updateSheet();
+      roll($('n_' + id), dir);
+      const c = COUNTERS.find(x => x.id === id);
+      if (okVal(c, draft[id]) === true && okVal(c, old) === false) sparkleAt($('n_' + id), 'good');
+    });
+    $('counters').querySelectorAll('[data-ch]').forEach(b => b.onclick = () => {
+      const id = b.dataset.ch, v = Number(b.dataset.v), c = COUNTERS.find(x => x.id === id);
+      draft[id] = v;
+      confirmRow(id); FX.tap(); updateSheet();
+      b.classList.remove('okpop'); b.offsetHeight; b.classList.add('okpop');
+      if (okVal(c, v)) sparkleAt(b, 'good');
+    });
+    $('counters').querySelectorAll('[data-ok]').forEach(n => n.onclick = () => {
+      confirmRow(n.dataset.ok); FX.tap(); updateSheet();
+      n.classList.remove('okpop'); n.offsetHeight; n.classList.add('okpop');
+    });
+    $('sheetSave').classList.remove('saving', 'ready');
+    updateSheet();
+    const ov = $('sheet');
+    ov.classList.remove('closing');
+    ov.hidden = false;
+    FX.tap();
+    // ein paar Sterne funkeln oben im Blatt
+    setTimeout(() => { const r = ov.querySelector('.sheet').getBoundingClientRect(); FX.twinkle(r.left, r.top, r.width, 70, 14); }, 250);
+  }
+  function confirmRow(id) {
+    const row = $('row_' + id);
+    if (!row.classList.contains('todo')) return;
+    row.classList.remove('todo');
+    row.classList.add('confirmed');
+    setTimeout(() => row.classList.remove('confirmed'), 700);
+  }
+  function roll(el, dir) {
+    el.classList.remove('roll-up', 'roll-down'); el.offsetHeight;
+    el.classList.add(dir > 0 ? 'roll-up' : 'roll-down');
+  }
+  function shake(el) { el.classList.remove('nope'); el.offsetHeight; el.classList.add('nope'); }
+  function sparkleAt(el, kind) {
+    const r = el.getBoundingClientRect();
+    FX.sparkle(r.left + r.width / 2, r.top + r.height / 2, kind === 'good' ? '#4cd3a0' : '#ffd93d');
+  }
+  let lastTodo = -1;
+  function updateSheet() {
+    const todo = document.querySelectorAll('#counters .counter.todo').length;
+    const sweet = sheetCounters.every(c => okVal(c, draft[c.id]) !== false);
+    const btn = $('sheetSave');
+    btn.disabled = todo > 0;
+    btn.classList.toggle('sweet', !todo && sweet);
+    if (sweet || todo) jokerSel.delete(sheetKey);
+    const jokerToday = jokerSel.has(sheetKey);
+    btn.classList.toggle('joker', !todo && jokerToday);
+    btn.textContent = todo ? `Noch ${todo} Zähler prüfen` : sweet ? 'Zuckerfrei speichern ✨' : jokerToday ? 'Mit Joker speichern 🃏' : 'Check-in speichern';
+    renderJokerZone(todo, sweet);
+    if (todo === 0 && lastTodo > 0) { btn.classList.remove('ready'); btn.offsetHeight; btn.classList.add('ready'); sparkleAt(btn, 'gold'); }
+    lastTodo = todo;
+    $('sheetHint').textContent = '';
+    sheetCounters.forEach(c => {
+      if (c.choice) {
+        $('row_' + c.id).querySelectorAll('[data-ch]').forEach(b => {
+          const on = draft[c.id] != null && Number(b.dataset.v) === draft[c.id];
+          b.classList.toggle('on', on);
+          b.classList.toggle('good', on && okVal(c, draft[c.id]) === true);
+          b.classList.toggle('bad', on && okVal(c, draft[c.id]) === false);
+        });
+        return;
+      }
+      const el = $('n_' + c.id);
+      el.textContent = draft[c.id];
+      el.classList.toggle('zero', okVal(c, draft[c.id]) === true);
+      el.classList.toggle('over', okVal(c, draft[c.id]) === false && c.limit != null);
+    });
+  }
+  function renderJokerZone(todo, sweet) {
+    const z = $('jokerZone');
+    const opts = sheetMissed.map(m => ({ k: m, label: `${WD[idx(parse(m))]} vergessen` }));
+    if (idx(parse(sheetKey)) < 6 && !todo && !sweet) opts.push({ k: sheetKey, label: 'für heute' });
+    z.hidden = !opts.length;
+    if (!opts.length) return;
+    const avail = jokerCount(sheetKey) + (sheetHadJoker ? 1 : 0);
+    const left = avail - jokerSel.size;
+    z.innerHTML = avail
+      ? `<div class="jz-title">🃏 Joker einsetzen? <span>${left} von ${avail} übrig</span></div>
+         <div class="jz-chips">${opts.map(o => { const on = jokerSel.has(o.k);
+           return `<button class="jz-chip ${on ? 'on' : ''}" data-jk="${o.k}" ${!on && left <= 0 ? 'disabled' : ''}>${on ? '🃏 ' : ''}${o.label}</button>`; }).join('')}</div>`
+      : `<div class="jz-title">🃏 Keine Joker übrig <span>${sheetMissed.length ? 'vergessene Tage zählen als nicht geschafft' : ''}</span></div>`;
+    z.querySelectorAll('[data-jk]').forEach(b => b.onclick = () => {
+      const k = b.dataset.jk;
+      if (jokerSel.has(k)) jokerSel.delete(k); else jokerSel.add(k);
+      FX.tap();
+      updateSheet();
+      const nb = z.querySelector(`[data-jk="${k}"]`);
+      if (nb && jokerSel.has(k)) { nb.classList.add('flip'); sparkleAt(nb, 'gold'); }
+    });
+  }
+  // Schließen mit Animation (Blatt rutscht runter, Hintergrund blendet aus)
+  function closeOverlay(ov, cb) {
+    if (ov.hidden || ov.classList.contains('closing')) return;
+    ov.classList.add('closing');
+    setTimeout(() => { ov.hidden = true; ov.classList.remove('closing'); if (cb) cb(); }, 280);
+  }
+  const closeSheet = cb => closeOverlay($('sheet'), typeof cb === 'function' ? cb : null);
+  $('sheetCancel').onclick = () => closeSheet();
+  $('sheet').onclick = ev => { if (ev.target.id === 'sheet') closeSheet(); };
+  $('sheetSave').onclick = () => {
+    if (sheetKey !== ymd(today())) { closeSheet(); return toast('Vergangene Tage sind gesperrt'); }
+    const btn = $('sheetSave');
+    if (btn.classList.contains('saving')) return;
+    // Button verwandelt sich in einen Haken, dann fliegt das Blatt weg, dann kommt die Belohnung
+    btn.classList.add('saving');
+    btn.textContent = '✓';
+    FX.haptic([0, 70]);
+    sparkleAt(btn, btn.classList.contains('sweet') ? 'good' : 'gold');
+    const entry = { ...draft };
+    Object.keys(entry).forEach(k => { if (entry[k] == null) delete entry[k]; });
+    const useToday = jokerSel.has(sheetKey);
+    const missedSel = [...jokerSel].filter(k => k !== sheetKey);
+    setTimeout(() => closeSheet(() => saveCheckin(sheetKey, entry, { useToday, missed: missedSel })), 450);
+  };
+  $('sheetDelete').onclick = () => {
+    if (sheetKey !== ymd(today()) || !confirm('Eintrag für heute löschen?')) return;
+    delete state.days[sheetKey]; save(); closeSheet(); render(); toast('Eintrag gelöscht');
+  };
+
+  function saveCheckin(k, entry, jk = {}) {
+    const d = parse(k);
+    const mon = mondayOf(d);
+    const before = weekResult(mon);
+    const oldStreak = idx(d) === 6 ? 0 : streakAt(ymd(prevCountable(d)));
+    const wasSundayFree = idx(d) === 6 && sundayFree(k);
+    // Joker werden nur hier im Check-in eingesetzt (aus dem Joker-Konto)
+    if (state.days[k]) delete state.days[k].joker;            // alter Joker von heute wird neu vergeben
+    const nextType = () => jokerCount() > 0 ? 'bank' : null;
+    const rescued = [];
+    (jk.missed || []).forEach(m => { const t = nextType(m); if (t && !state.days[m]) { state.days[m] = { missed: true, joker: t }; rescued.push(m); } });
+    const sweetToday = !entry.drinks && !entry.sweets && (entry.cookies || 0) <= COOKIE_LIMIT;
+    if (jk.useToday && !sweetToday && idx(d) < 6) { const t = nextType(k); if (t) entry.joker = t; }
+    state.days[k] = entry;
+    save();
+    const after = weekResult(mon);
+    render();
+    const earnedNow = totalEarned();
+    const remaining = shownAmount(earnedNow);                       // angezeigter Stand danach
+    const where = payoutName() ? `in ${payoutName()}` : 'bei euch';
+
+    if (idx(d) === 6) {
+      const free = !entry.drinks && !entry.sweets && (entry.cookies || 0) <= COOKIE_LIMIT;
+      const rescuedTxt = rescued.length ? `🃏 Joker für ${rescued.map(m => WD_LONG[idx(parse(m))]).join(' & ')} eingesetzt.<br>` : '';
+      if (!free) { if (rescued.length) toast('Joker eingesetzt 🃏'); else toast(wasSundayFree ? 'Sonntags-Joker wieder weg 🙈' : 'Eingetragen – Sonntag ist frei 🍰'); return; }
+      const fresh = !wasSundayFree;
+      return reward({ scene: fresh ? 'konfetti' : pick(DAY_SCENES), scenes: fresh ? ['konfetti', 'sterne'] : null, emoji: fresh ? '🃏' : undefined,
+        title: 'Sogar am Sonntag zuckerfrei!', amount: fresh ? '+1 Joker' : '',
+        text: rescuedTxt + `Dafür gibt's einen Joker! Du hast jetzt ${jokerCount()} Joker 🃏`, streak: streakAt(ymd(addDays(d, -1))) });
+    }
+    const debtBefore = shownAmount(earnedNow - (after.earned - before.earned));
+    const rescuedTxt = rescued.length ? `🃏 Joker für ${rescued.map(m => WD_LONG[idx(parse(m))]).join(' & ')} eingesetzt.<br>` : '';
+    if (after.bonus && !before.bonus) {
+      return streakScene(k, oldStreak, () => questScene(k, 'win', before, after, () => (after.base && !before.base ? (n => bossLoot(k, n)) : (n => n()))(() => reward({ scene: 'glanz', big: true, scenes: ['muenzen', 'goldregen', 'feuerwerk', 'konfetti'], emoji: '🏆', title: 'Perfekte Woche!', amount: `${T().sign}${euro(BONUS)} Bonus`,
+        streak: streakAt(k), debtFrom: debtBefore, debtTo: remaining,
+        text: rescuedTxt + `Mo–Sa zuckerfrei – ${euro(BASE + BONUS)} diese Woche!<br><b>Jetzt ${where} eintragen 💸</b>` }))));
+    }
+    if (after.base && !before.base) {
+      return streakScene(k, oldStreak, () => questScene(k, 'win', before, after, () => bossLoot(k, () => reward({ scene: 'muenzen', big: true, scenes: ['muenzen', pick(['feuerwerk', 'rakete', 'einhornflug', 'galaxie'])], title: 'Woche geschafft!', amount: `${T().sign}${euro(BASE)}`,
+        streak: streakAt(k), debtFrom: debtBefore, debtTo: remaining,
+        text: rescuedTxt + (BONUS ? `Samstag zuckerfrei bringt noch +${euro(BONUS)} 💰<br>` : '') + `Am Wochenende kannst du den Betrag ${where} eintragen.` }))));
+    }
+    if (dayStatus(k) === 'yes') {
+      const left = 5 - after.yesCount;
+      const streak = streakAt(k);
+      const text = entry.joker ? 'Der Joker rettet den Tag – weiter geht\'s!' :
+        idx(d) === 5 ? 'Samstag geschafft 💪' :
+        left > 0 ? `Noch ${left} ${left === 1 ? 'Tag' : 'Tage'} bis zu den ${euro(BASE)}.` : 'Weiter so!';
+      const scene = entry.joker ? 'konfetti' : streak >= 3 && Math.random() < .4 ? 'flamme' : pick(DAY_SCENES);
+      return streakScene(k, oldStreak, () => questScene(k, 'hit', before, after, () => dayPrize({ scene, emoji: entry.joker ? '🃏' : undefined, title: pick(PRAISE), text: rescuedTxt + text, streak })));
+    }
+    // nicht geschafft
+    const sad = pick(Object.keys(FX.SAD));
+    const sadTitle = { regen: 'Heute hat\'s geregnet', welk: 'Nicht ganz geschafft', zucker: 'Der Zucker war stärker', umarmung: 'Fühl dich gedrückt' }[sad];
+    const failsWeek = idx(d) < 5;
+    const jokerHint = jokerAvailable(k) ? '<br><small>🃏 Du hast noch Joker – über „Check-in bearbeiten“ kannst du heute noch einen einsetzen.</small>' : '';
+    if (jokerHint) return streakScene(k, oldStreak, () => questScene(k, 'fail', before, after, () => reward({ scene: sad, title: sadTitle, text: rescuedTxt + 'Passiert. Morgen wieder 💛' + jokerHint })));
+    streakScene(k, oldStreak, () => questScene(k, 'fail', before, after, () => reward({ scene: sad, title: sadTitle, text: rescuedTxt + (failsWeek
+      ? `Die ${euro(BASE)} sind diese Woche leider weg – aber jeder zuckerfreie Tag tut dir trotzdem gut. Montag geht's frisch los 💛`
+      : 'Morgen ist ein neuer Tag. Du schaffst das 💛') })));
+  }
+
+  // ================= Check-in-Varianten (zufällig rotierend) =================
+  const MODES = { classic: 'Klassisch', interview: 'Einhorny-Interview', swipe: 'Swipe-Karten', feed: 'Einhorny füttern', tresor: 'Zahlen-Tresor', sticker: 'Sticker-Tagebuch',
+    balloon: 'Ballon-Pop', quiz: 'Quiz-Show', dial: 'Wählscheibe', darts: 'Zielscheibe', slider: 'Regenbogen-Regler' };
+  const MODE_KEYS = Object.keys(MODES);
+  const hash = str => { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+  let demoModeIdx = 0;
+  function modeFor(k) {
+    if (realState) { demoModeIdx = (demoModeIdx + 1) % MODE_KEYS.length; return MODE_KEYS[demoModeIdx]; }   // Demo: reihum alle Varianten
+    if (state.mode && state.mode !== 'random') return state.mode;
+    const n = MODE_KEYS.length, raw = x => hash(x + 'mode') % n;
+    let i = raw(k);
+    if (i === raw(ymd(addDays(parse(k), -1)))) i = (i + 1) % n;      // nie zweimal hintereinander gleich
+    return MODE_KEYS[i];
+  }
+  const RITUALS = { swear: '🤞 Ehrenschwur', highfive: '✋ High-Five', signature: '✍️ Unterschrift', candle: '🕯️ Kerze auspusten' };
+  // null = kein Ritual heute, sonst welches
+  function ritualFor(k) {
+    if (realState) return Math.random() < .5 ? pick(Object.keys(RITUALS)) : null;     // Demo: mal mit, mal ohne Ritual
+    if (state.ritual === 'never') return null;
+    if (state.ritual && RITUALS[state.ritual]) return state.ritual;
+    if (state.ritual !== 'always' && hash(k + 'swear') % 2 !== 0) return null;
+    const keys = Object.keys(RITUALS);
+    return keys[hash(k + 'ritual') % keys.length];
+  }
+  const runRitual = (kind, el, done) => kind === 'swear' ? Games.swear(el, done, FX.tap) : Games[kind](el, done, gameCtx(ymd(today()), []));
+  const gameCtx = (k, counters) => ({
+    counters, name: state.name, dayName: WD_LONG[idx(parse(k))],
+    tap: FX.tap, haptic: FX.haptic,
+    sparkle: (x, y, kind) => FX.sparkle(x, y, kind === 'good' ? '#4cd3a0' : '#ffd93d'),
+    fx: n => n === 'konfetti-mini' ? FX.play('konfetti') : FX.play(n),
+    cancel: () => {}
+  });
+  // Einstieg für jeden Check-in
+  function openCheckin(k) {
+    if (state.days[k]) return openSheet(k);                     // Bearbeiten immer klassisch
+    const mode = modeFor(k);
+    if (mode === 'classic') return openSheet(k);
+    const counters = shuffle(countersFor(k));
+    FX.tap();
+    Games[mode](gameCtx(k, counters), vals => openSummary(k, vals, mode));
+  }
+  // Zusammenfassung nach einer Spiel-Variante: Werte, Joker, Ehrenschwur, Speichern
+  function openSummary(k, vals, mode) {
+    const cs = countersFor(k);
+    const entry = {};
+    cs.forEach(c => { entry[c.id] = vals[c.id] != null ? vals[c.id] : 0; });
+    const sweet = cs.every(c => okVal(c, entry[c.id]) !== false);
+    const isSun = idx(parse(k)) === 6;
+    const missed = missedDays(k);
+    const sel = new Set();
+    const body = Games.open('Dein Tag 📝', `
+      <div class="sum-verdict">${isSun ? 'Sonntag – zählt nicht 🍰' : sweet ? 'Zuckerfrei! ✨' : 'Heute nicht ganz zuckerfrei'}</div>
+      <div class="sum-pills">${cs.map(c => { const o = okVal(c, entry[c.id]); return `<span class="pill ${o === true ? 'ok' : o === false ? 'ko' : ''}">${c.icon} ${showVal(c, entry[c.id])}</span>`; }).join('')}</div>
+      <button class="linkbtn" id="sumFix">✏️ Korrigieren</button>
+      <div id="sumJoker" class="joker-zone" hidden></div>
+      <div id="sumEnd" style="margin-top:14px"></div>`, () => {});
+    void body;
+    const z = $('sumJoker');
+    const drawJ = () => {
+      const opts = missed.map(m => ({ k: m, label: `${WD[idx(parse(m))]} vergessen` }));
+      if (!isSun && !sweet) opts.push({ k, label: 'für heute' });
+      z.hidden = !opts.length;
+      if (!opts.length) return;
+      const avail = jokerCount(k), left = avail - sel.size;
+      z.innerHTML = avail
+        ? `<div class="jz-title">🃏 Joker einsetzen? <span>${left} von ${avail} übrig</span></div>
+           <div class="jz-chips">${opts.map(o => { const on = sel.has(o.k); return `<button class="jz-chip ${on ? 'on' : ''}" data-jk="${o.k}" ${!on && left <= 0 ? 'disabled' : ''}>${on ? '🃏 ' : ''}${o.label}</button>`; }).join('')}</div>`
+        : `<div class="jz-title">🃏 Keine Joker übrig</div>`;
+      z.querySelectorAll('[data-jk]').forEach(b => b.onclick = () => {
+        const x = b.dataset.jk; if (sel.has(x)) sel.delete(x); else sel.add(x);
+        FX.tap(); drawJ(); drawEnd();
+        const nb = z.querySelector(`[data-jk="${x}"]`); if (nb && sel.has(x)) { nb.classList.add('flip'); sparkleAt(nb, 'gold'); }
+      });
+    };
+    let finished = false;
+    const finish = extra => {
+      if (finished) return; finished = true;
+      if (extra && extra.sig) {                              // Unterschrift aufheben (nur die letzten 14)
+        state.sigs = state.sigs || {}; state.sigs[k] = extra.sig;
+        Object.keys(state.sigs).sort().slice(0, -14).forEach(x => delete state.sigs[x]);
+      }
+      Games.close(() => saveCheckin(k, entry, { useToday: sel.has(k), missed: [...sel].filter(x => x !== k) }));
+    };
+    let swearShown = false;
+    const drawEnd = () => {
+      const end = $('sumEnd');
+      const rk = ritualFor(k);
+      if (rk) { if (!swearShown) { swearShown = true; runRitual(rk, end, finish); } return; }
+      end.innerHTML = `<button class="big primary ${sweet ? 'sweet' : sel.has(k) ? 'joker' : ''}" id="sumSave" style="width:100%">${sweet ? 'Zuckerfrei speichern ✨' : sel.has(k) ? 'Mit Joker speichern 🃏' : 'Speichern'}</button>`;
+      $('sumSave').onclick = () => { FX.haptic([0, 70]); finish(); };
+    };
+    $('sumFix').onclick = () => Games.close(() => openSheet(k, entry));
+    drawJ(); drawEnd();
+  }
+
+  // ================= Preise (Rubbellos / Glücksrad) =================
+  // 12 Sticker, die über Familienstufen aufsteigen (je mehr vom selben, desto höher)
+  const STICKER_NAMES = { '🍓': 'Erdbeer', '🦄': 'Einhorn', '🌈': 'Regenbogen', '🥑': 'Avocado', '🌸': 'Blüten', '⭐': 'Sternen',
+    '🐝': 'Bienen', '🦋': 'Schmetterlings', '🍀': 'Klee', '🐬': 'Delfin', '🌙': 'Mond', '🍉': 'Melonen' };
+  const STICKERS = Object.keys(STICKER_NAMES);
+  const TIERS = [
+    { at: 1, n: '', acc: '', cls: 't0' },
+    { at: 5, n: 'Mama', acc: '🎀', cls: 't1' },
+    { at: 10, n: 'Oma', acc: '👓', cls: 't2' },
+    { at: 20, n: 'Uroma', acc: '👑', cls: 't3' },
+    { at: 35, n: 'Ur-Uroma', acc: '🌈', cls: 't4' }
+  ];
+  const tierOf = n => { let t = 0; TIERS.forEach((x, i) => { if (n >= x.at) t = i; }); return t; };
+  const stickerName = (e, t) => `${STICKER_NAMES[e] || 'Sticker'}${TIERS[t].n ? '-' + TIERS[t].n : '-Sticker'}`;
+  const stickerHTML = (e, t) => `<span class="cu stk-t ${TIERS[t].cls}">${e}${TIERS[t].acc ? `<i>${TIERS[t].acc}</i>` : ''}</span>`;
+  // Gutschein-Liste (früher Textfeld – alte Einträge werden übernommen)
+  const vouchers = () => state.voucherList || (state.vouchers ? state.vouchers.split('\n').map(x => x.trim()).filter(Boolean) : []);
+  const V_SUGG = ['☕ Kaffee trinken gehen', '🍝 Ich koche für dich', '💆 Massage', '🎬 Filmabend – du wählst', '🧹 Ich mach den Abwasch', '🌅 Ausflug am Wochenende', '🛁 Wellness-Abend', '🍦 Eis essen (zuckerfrei 😏)'];
+  function renderVouchers() {
+    const list = vouchers();
+    $('vList').innerHTML = list.length
+      ? list.map((v, i) => `<div class="v-item"><span>🎟️ ${v.replace(/</g, '&lt;')}</span><button class="v-del" data-vdel="${i}" aria-label="Löschen">✕</button></div>`).join('')
+      : '<div class="empty" style="font-size:13px">Noch keine Gutscheine – füg unten welche hinzu.</div>';
+    $('vList').querySelectorAll('[data-vdel]').forEach(b => b.onclick = () => {
+      state.voucherList = vouchers().slice(); state.voucherList.splice(Number(b.dataset.vdel), 1); save(); renderVouchers(); FX.tap(); toast('Gutschein entfernt');
+    });
+    $('vSugg').innerHTML = V_SUGG.filter(x => !list.includes(x)).map(x => `<button class="v-chip" data-vs="${x}">＋ ${x}</button>`).join('');
+    $('vSugg').querySelectorAll('[data-vs]').forEach(b => b.onclick = () => addVoucher(b.dataset.vs));
+  }
+  function addVoucher(txt) {
+    txt = (txt || '').trim();
+    if (!txt) return;
+    state.voucherList = vouchers().concat([txt]).filter((x, i, a) => a.indexOf(x) === i);
+    save(); renderVouchers(); FX.tap(); toast('Gutschein hinzugefügt 🎟️');
+  }
+  function makePrize(key) {
+    const sp = { s: pick(STICKERS) };
+    switch (key) {
+      case 'mega': return { key, emoji: '🦄', title: 'EINHORN-REGEN!', sub: 'Mega-Modus freigeschaltet' };
+      case 'joker': return { key, emoji: '🃏', title: 'Bonus-Joker!', sub: '+1 Joker für schwache Tage' };
+      case 'gutschein': { const v = vouchers(); return v.length ? { key, emoji: '🎟️', title: 'Gutschein!', sub: pick(v).replace(/</g, '&lt;') } : makePrize('sticker'); }
+      case 'spruch': return { key, emoji: '💬', title: 'Einhorny-Weisheit', sub: pick(CHEEKY.concat(TIPS)) };
+      case 'sticker': {
+        const n = Number(weighted({ 1: 55, 2: 30, 3: 15 }));
+        const have = (state.stickers || {})[sp.s] || 0, next = TIERS[tierOf(have) + 1];
+        return { key, emoji: sp.s, count: n, title: n > 1 ? `${n}× ${STICKER_NAMES[sp.s]}-Sticker!` : `${STICKER_NAMES[sp.s]}-Sticker!`,
+          sub: next ? `Jetzt ${have + n}× – ab ${next.at}× gibt's die ${STICKER_NAMES[sp.s]}-${next.n} ${next.acc}` : `Jetzt ${have + n}× im Album` };
+      }
+      default: return { key: 'anim', emoji: '✨', title: 'Extra-Show!', sub: 'Eine Bonus-Animation nur für dich' };
+    }
+  }
+  // Gewichte der Preise; der Joker hat immer genau 1/10 Chance
+  const JOKER_CHANCE = .1;
+  const PRIZE_W = () => {
+    const w = { sticker: 26, anim: 20, spruch: 18, mega: 8, gutschein: vouchers().length ? 8 : 0 };
+    const rest = Object.values(w).reduce((a, b) => a + b, 0);
+    w.joker = rest * JOKER_CHANCE / (1 - JOKER_CHANCE);
+    return w;
+  };
+  function weighted(w) { const tot = Object.values(w).reduce((a, b) => a + b, 0); let r = Math.random() * tot; for (const [k, v] of Object.entries(w)) { if ((r -= v) < 0) return k; } return 'anim'; }
+  function applyPrize(p) {
+    if (p.key === 'joker') state.bonusJokers = (state.bonusJokers || 0) + 1;
+    let tierUp = null;
+    if (p.key === 'sticker') {
+      state.stickers = state.stickers || {};
+      const before = state.stickers[p.emoji] || 0, after = before + (p.count || 1);
+      state.stickers[p.emoji] = after;
+      if (tierOf(after) > tierOf(before)) tierUp = { e: p.emoji, t: tierOf(after) };
+    }
+    if (p.key === 'collect') { state.collection = state.collection || {}; state.collection[p.id] = (state.collection[p.id] || 0) + 1; }
+    if (p.key === 'gutschein') { state.wonVouchers = state.wonVouchers || []; state.wonVouchers.push({ t: p.sub, d: ymd(today()), used: false }); }
+    save(); render();
+    return tierUp;
+  }
+  // Sammel-Einhörner für den Kapselautomaten
+  const COLLECT = [
+    { id: 'blume', a: '🌸', n: 'Blumen-Einhorny', r: 'common' }, { id: 'kaffee', a: '☕', n: 'Kaffee-Einhorny', r: 'common' },
+    { id: 'schlaf', a: '💤', n: 'Schlafmütze', r: 'common' }, { id: 'regen', a: '☔', n: 'Regenschirm-Einhorny', r: 'common' },
+    { id: 'buch', a: '📚', n: 'Bücherwurm', r: 'common' }, { id: 'yoga', a: '🧘', n: 'Yoga-Einhorny', r: 'common' },
+    { id: 'disco', a: '🪩', n: 'Disco-Einhorny', r: 'rare' }, { id: 'surf', a: '🏄', n: 'Surfer-Einhorny', r: 'rare' },
+    { id: 'koch', a: '🍳', n: 'Koch-Einhorny', r: 'rare' }, { id: 'rock', a: '🎸', n: 'Rockstar-Einhorny', r: 'rare' },
+    { id: 'astro', a: '🚀', n: 'Astronauten-Einhorny', r: 'epic' }, { id: 'ninja', a: '🥷', n: 'Ninja-Einhorny', r: 'epic' },
+    { id: 'pirat', a: '🏴‍☠️', n: 'Piraten-Einhorny', r: 'epic' },
+    { id: 'koenig', a: '👑', n: 'Regenbogen-König', r: 'legend' }, { id: 'galaxie', a: '🌌', n: 'Galaxie-Einhorny', r: 'legend' }
+  ];
+  const RARITY_W = { common: 60, rare: 25, epic: 12, legend: 3 };
+  const collectHTML = c => `<span class="cu">🦄<i>${c.a}</i></span>`;
+  function makeGachaPrize() {
+    if (Math.random() < JOKER_CHANCE) return makePrize('joker');
+    const rar = weighted(RARITY_W);
+    const c = pick(COLLECT.filter(x => x.r === rar));
+    const have = (state.collection || {})[c.id];
+    return { key: 'collect', id: c.id, rarity: rar, emoji: collectHTML(c), title: c.n, sub: have ? `Doppelt! Schon ${have}× in deiner Sammlung` : 'Neu in deiner Sammlung! ✨' };
+  }
+  const PRIZE_GAMES = ['anim', 'scratch', 'wheel', 'shake', 'gacha'];
+  // Belohnung für einen geschafften Tag: Animation, Rubbellos, Glücksrad, Geschenkbox oder Kapselautomat
+  function dayPrize(opts, preview) {
+    const mode = state.prizeMode || pick(PRIZE_GAMES);
+    if (mode === 'anim') return reward(opts);
+    const showWon = p => {
+      const up = preview ? null : applyPrize(p);          // Vorschau schreibt nichts gut
+      if (up) return reward({ ...opts, big: true, scene: 'glanz', scenes: ['goldregen', 'konfetti'], emoji: stickerHTML(up.e, up.t),
+        title: `${stickerName(up.e, up.t)} freigeschaltet!`, amount: TIERS[up.t].acc + ' Neue Stufe',
+        text: `Du hast jetzt ${state.stickers[up.e]}× ${up.e}. ${TIERS[up.t + 1] ? `Ab ${TIERS[up.t + 1].at}× kommt die ${stickerName(up.e, up.t + 1)} ${TIERS[up.t + 1].acc}` : 'Höchste Stufe erreicht – Legende! 🏆'}<br>` + (opts.text || '') });
+      reward({ ...opts, scene: p.key === 'mega' ? 'einhornflug' : p.rarity === 'legend' ? 'goldregen' : opts.scene, emoji: p.emoji, title: p.title,
+        text: `<b>${p.sub}</b><br>` + (opts.text || '') });
+      if (p.key === 'mega') setTimeout(() => FX.megaUnicorns(), 300);
+    };
+    const ctx = gameCtx(ymd(today()), []);
+    if (mode === 'scratch') return Games.scratch(makePrize(weighted(PRIZE_W())), ctx, showWon);
+    if (mode === 'shake') return Games.shake(makePrize(weighted(PRIZE_W())), ctx, showWon);
+    if (mode === 'gacha') return Games.gacha(makeGachaPrize(), ctx, showWon);
+    const keys = ['sticker', 'anim', 'spruch', 'joker', 'sticker', 'mega', 'spruch', vouchers().length ? 'gutschein' : 'anim'];
+    const segs = keys.map(makePrize);
+    const w = PRIZE_W(), cnt = {}; keys.forEach(x => { cnt[x] = (cnt[x] || 0) + 1; });
+    const segW = {}; keys.forEach((x, i) => { segW[i] = (w[x] || 1) / cnt[x]; });
+    Games.wheel(segs, Number(weighted(segW)), ctx, showWon);
+  }
+
+  // ================= Demo-Modus: Beispielstand zum Vorführen, nichts wird gespeichert =================
+  let realState = null;
+  function buildDemoState() {
+    const t = today(), start = addDays(mondayOf(t), -21);
+    const days = {};
+    const z = (o = {}) => Object.assign({ drinks: 0, sweets: 0, zero: 1 + (hash(String(Math.random())) % 3), protein: hash(String(Math.random())) % 2 }, o);
+    for (let d = start; d < t; d = addDays(d, 1)) {
+      const k = ymd(d), w = Math.round((d - start) / 864e5 / 7), i = idx(d);
+      if (i === 6) { days[k] = z(w === 1 ? { sweets: 1 } : {}); continue; }       // Sonntage meist zuckerfrei → Joker
+      if (w === 1 && i === 2) { days[k] = z({ drinks: 1 }); continue; }           // ein schwacher Mittwoch
+      if (w === 2 && i === 3) { days[k] = z({ sweets: 2, joker: 'bank' }); continue; } // per Joker gerettet
+      days[k] = z();
+    }
+    const booked = {};
+    for (let m = start; m < mondayOf(t); m = addDays(m, 7)) booked[ymd(m)] = 0;
+    return Object.assign(defaults(), {
+      name: state.name || 'Naschkatze', startDebt: state.startDebt || 500, goalMode: state.goalMode || 'save', perWeek: state.perWeek || 20, satBonus: state.satBonus ?? 5,
+      payout: state.payout || '', startDate: ymd(start), days, onboarded: true,
+      gebaeck: state.gebaeck, gebaeckStart: state.gebaeckStart, gebaeckEnd: state.gebaeckEnd,
+      bonusJokers: 1, voucherList: ['☕ Kaffee trinken gehen', '🍝 Ich koche für dich', '💆 Massage'],
+      wonVouchers: [{ t: '☕ Kaffee trinken gehen', d: ymd(addDays(t, -9)), used: true }, { t: '💆 Massage', d: ymd(addDays(t, -3)), used: false }],
+      stickers: { '🍓': 6, '🦋': 11, '🌙': 3, '⭐': 22, '🐬': 1, '🍀': 4 },
+      collection: { blume: 2, kaffee: 1, disco: 1, astro: 1, koenig: 1 },
+      bossSeen: ymd(mondayOf(t)), lastBackup: Date.now(), booked: {}
+    });
+  }
+  function enterDemo() {
+    if (realState) return;
+    realState = state;
+    state = buildDemoState();
+    document.body.classList.add('demo');
+    $('demoBar').hidden = false;
+    showTab('Home'); render();
+    FX.play('konfetti'); toast('🎬 Demo-Modus – nichts wird gespeichert');
+  }
+  function exitDemo() {
+    if (!realState) return;
+    ['sheet', 'game', 'reward', 'payPop'].forEach(id => { $(id).hidden = true; });
+    state = realState; realState = null;
+    document.body.classList.remove('demo');
+    $('demoBar').hidden = true;
+    showTab('Home'); render(); toast('Demo beendet – echter Stand ist zurück ✓');
+  }
+  const isDemo = () => !!realState;
+
+  // ================= Begrüßungs-Rundgang (erster Start) =================
+  function onboarding(force) {
+    if (!force && (state.onboarded || Object.keys(state.days).length)) return false;
+    if (['sheet', 'game', 'reward', 'payPop'].some(id => !$(id).hidden)) return false;
+    const q = v => String(v ?? '').replace(/"/g, '&quot;');
+    let mode = state.goalMode || 'debt';
+    const steps = [
+      () => `<div class="ob-e">🦄</div><h2 class="ob-h">Hi! Ich bin Einhorny.</h2>
+        <p class="ob-p">Ich helf dir, zuckerfrei zu bleiben – und belohne dich dafür. Wie darf ich dich nennen?</p>
+        <input type="text" id="obName" placeholder="Dein Name" value="${q(state.name)}" maxlength="30" enterkeyhint="next">`,
+      () => `<div class="ob-e">🤝</div><h2 class="ob-h">Euer Deal</h2>
+        <p class="ob-p">Worum spielst du?</p>
+        <div class="ob-mode"><button data-mode="debt" class="${mode === 'debt' ? 'on' : ''}">💸 Schulden abbauen</button><button data-mode="save" class="${mode === 'save' ? 'on' : ''}">🐷 Auf ein Ziel sparen</button></div>
+        <div class="ob-form">
+          <label><span id="obAmountL">${mode === 'debt' ? 'Schulden insgesamt (€)' : 'Sparziel (€, optional)'}</span><input type="number" id="obAmount" inputmode="decimal" min="0" placeholder="z. B. 500" value="${q(state.startDebt || '')}"></label>
+          <label><span>Belohnung pro Woche (Mo–Fr zuckerfrei, €)</span><input type="number" id="obWeek" inputmode="decimal" min="0" placeholder="z. B. 20" value="${q(state.perWeek || '')}"></label>
+          <label><span>Bonus, wenn auch Samstag klappt (€, optional)</span><input type="number" id="obBonus" inputmode="decimal" min="0" placeholder="z. B. 5" value="${q(state.satBonus ?? '')}"></label>
+          <label><span>Wo tragt ihr es ein? (optional, z. B. Name eurer Abrechnungs-App)</span><input type="text" id="obPayout" maxlength="30" placeholder="leer lassen = allgemein" value="${q(state.payout)}"></label>
+          <label><span>Start (wird auf den Montag gesetzt)</span><input type="date" id="obStart" value="${q(state.startDate)}"></label>
+        </div>
+        <div class="ob-err" id="obErr"></div>`,
+      () => { applyDeal(); const st = parse(state.startDate); return `<div class="ob-e">💰</div><h2 class="ob-h">So funktioniert's</h2>
+        <div class="ob-list">
+          <div><b>Mo–Fr</b> keine Süßigkeiten & Süßgetränke mit Zucker → <b>${T().sign}${euro(BASE)}</b> ${isSave() ? 'für dich' : 'Schulden'}</div>
+          ${BONUS ? `<div><b>Samstag</b> auch geschafft → <b>+${euro(BONUS)}</b> extra</div>` : ''}
+          <div><b>Sonntag</b> ist frei 🍰 – zuckerfrei gibt's trotzdem einen Joker</div>
+          <div>Start: <b>${WD_LONG[idx(st)]}, ${fmtDate(st)}</b>${goalAmount() ? ` · ${isSave() ? 'Ziel' : 'Schulden'}: <b>${euro(goalAmount())}</b>` : ''}</div>
+        </div>`; },
+      () => `<div class="ob-e">🔥</div><h2 class="ob-h">Jeden Abend kurz einchecken</h2>
+        <div class="ob-list">
+          <div>Ab 18 Uhr öffnet sich der <b>Check-in</b> von selbst – jeden Tag in einer anderen Spiel-Variante 🎲</div>
+          <div>Zuckerfreie Tage am Stück = deine <b>Serie</b> 🔥</div>
+          <div><b>Joker</b> 🃏 retten einen schwachen Tag – es gibt sie für zuckerfreie Sonntage und mit Glück bei Gewinnspielen</div>
+          <div>Jede zweite Woche wartet ein <b>Boss</b> ⚔️ – jeder zuckerfreie Tag ist ein Treffer</div>
+        </div>`,
+      () => `<div class="ob-e">🔔</div><h2 class="ob-h">Abend-Erinnerung</h2>
+        <p class="ob-p">Damit du den Check-in nicht vergisst: In der <b>Kurzbefehle</b>-App unter <b>Automation → Tageszeit</b> (z. B. 21:30, täglich, „Sofort ausführen“) die Aktion <b>„Mitteilung anzeigen“</b> anlegen.</p>
+        <p class="ob-p">Alles lässt sich später unter ⚙️ <b>Mehr</b> ändern – und dort ab und zu ein Backup sichern 💾</p>`
+    ];
+    let i = 0;
+    const num = id => { const v = $(id).value.trim(); return v === '' ? null : Number(v.replace(',', '.')); };
+    const draw = () => {
+      Games.open('Willkommen ✨', `<div class="ob">${steps[i]()}
+        <div class="ob-dots">${steps.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>
+        <button class="big primary" id="obNext" style="width:100%">${i < steps.length - 1 ? 'Weiter' : 'Los geht’s! 🚀'}</button></div>`,
+        () => { state.onboarded = true; save(); render(); }, 'Diese Einführung kannst du später unter ⚙️ Mehr nochmal ansehen.');
+      Games.progress(i + 1, steps.length);
+      const nm = $('obName');
+      if (nm) nm.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); $('obNext').click(); } });
+      $('gameBody').querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+        mode = b.dataset.mode; FX.tap();
+        $('gameBody').querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x === b));
+        $('obAmountL').textContent = mode === 'debt' ? 'Schulden insgesamt (€)' : 'Sparziel (€, optional)';
+      });
+      $('obNext').onclick = () => {
+        if (nm) { state.name = nm.value.trim(); }
+        if ($('obWeek')) {                                     // Deal prüfen und übernehmen
+          const amount = num('obAmount'), week = num('obWeek'), bonus = num('obBonus');
+          const err = !(week > 0) ? 'Bitte eine Belohnung pro Woche eintragen.'
+            : mode === 'debt' && !(amount > 0) ? 'Bitte die Schulden insgesamt eintragen.'
+            : [amount, bonus].some(x => x != null && !(x >= 0)) ? 'Bitte nur positive Beträge.' : '';
+          if (err) { $('obErr').textContent = err; FX.tap(); return; }
+          state.goalMode = mode; state.startDebt = amount || 0; state.perWeek = week; state.satBonus = bonus || 0;
+          state.payout = $('obPayout').value.trim();
+          if ($('obStart').value) state.startDate = ymd(mondayOf(parse($('obStart').value)));
+        }
+        save(); render();
+        FX.tap();
+        if (i < steps.length - 1) { i++; draw(); return; }
+        state.onboarded = true; save();
+        Games.close(() => { FX.play('konfetti'); toast(state.name ? `Los geht's, ${state.name}! 🦄` : 'Los geht\'s! 🦄'); });
+      };
+    };
+    draw();
+    return true;
+  }
+
+  // ================= Serie (Duolingo-Stil) =================
+  // Zählt zuckerfreie Tage Mo–Sa am Stück; Sonntage pausieren, Joker schützen die Serie wie ein Streak-Freeze.
+  const MILESTONES = [3, 7, 14, 21, 30, 50, 75, 100, 150, 200];
+  const prevCountable = d => { let x = addDays(d, -1); if (idx(x) === 6) x = addDays(x, -1); return x; };
+  function streakInfo() {
+    const t = today(), k = ymd(t);
+    const sun = idx(t) === 6;
+    const doneToday = sun || dayStatus(k) === 'yes';
+    const failedToday = !sun && dayStatus(k) === 'no';
+    const n = failedToday ? 0 : sun ? streakAt(ymd(addDays(t, -1))) : doneToday ? streakAt(k) : streakAt(ymd(prevCountable(t)));
+    return { n, doneToday, failedToday, sun, best: Math.max(bestStreak(), n), next: MILESTONES.find(m => m > n) };
+  }
+  function renderTopbar(started) {
+    const s = streakInfo(), lvl = Math.floor(Math.max(0, totalEarned()) / 100) + 1, h = new Date().getHours();
+    const btn = $('streakBtn');
+    btn.className = 'tb-streak' + (s.doneToday && s.n ? ' lit' : '') + (!s.doneToday && !s.failedToday && s.n && (h >= 20 || h < 4) ? ' risk' : '');
+    $('streakN').textContent = started ? s.n : 0;
+    $('tbEuro').textContent = euro(totalEarned());
+    $('tbLvl').textContent = lvl;
+  }
+  // Detail-Fenster beim Antippen der Flamme
+  function openStreak() {
+    const s = streakInfo(), t = today(), start = parse(state.startDate);
+    const prevM = [...MILESTONES].reverse().find(m => m <= s.n) || 0;
+    const pct = s.next ? Math.round((s.n - prevM) / (s.next - prevM) * 100) : 100;
+    const mon = mondayOf(t);
+    const cell = d => {
+      const k = ymd(d), e = state.days[k], st = idx(d) < 6 ? dayStatus(k) : null;
+      if (d > t || d < start) return '<i class="sc fut"></i>';
+      if (idx(d) === 6) return `<i class="sc sun">${e && sundayFree(k) ? '☀️' : '·'}</i>`;
+      if (e && e.joker) return '<i class="sc frz">🧊</i>';
+      if (st === 'yes') return '<i class="sc on">🔥</i>';
+      if (st === 'no') return '<i class="sc off">✕</i>';
+      return '<i class="sc open"></i>';
+    };
+    const weeks = [];
+    for (let m = addDays(mon, -28); m <= mon; m = addDays(m, 7)) weeks.push(m);
+    Games.open('Deine Serie 🔥', `
+      <div class="st-hero ${s.doneToday && s.n ? 'lit' : ''}"><div class="st-flame">🔥</div><div class="st-n">${s.n}</div>
+        <div class="st-l">${s.n === 1 ? 'Tag' : 'Tage'} zuckerfrei am Stück</div></div>
+      <div class="st-msg">${s.failedToday ? 'Heute ist die Serie gerissen 💔 Morgen fängt eine neue an!'
+        : s.sun ? 'Sonntag pausiert die Serie – sie wartet auf Montag 😴'
+        : s.doneToday ? 'Heute schon verlängert! 🎉'
+        : s.n ? `Mach heute deinen Check-in, sonst ist die ${s.n}er-Serie weg! ⏳` : 'Starte heute eine neue Serie! 🌱'}</div>
+      ${s.next ? `<div class="st-goal"><span>Nächster Meilenstein: <b>🔥 ${s.next}</b></span><span>noch ${s.next - s.n}</span></div>
+        <div class="gp-bar st-bar"><i style="width:${pct}%"></i></div>` : ''}
+      <div class="st-cal"><div class="st-row head">${WD.map(w => `<span>${w}</span>`).join('')}</div>
+        ${weeks.map(m => `<div class="st-row">${[0, 1, 2, 3, 4, 5, 6].map(i => cell(addDays(m, i))).join('')}</div>`).join('')}</div>
+      <div class="st-legend"><span>🔥 zuckerfrei</span><span>🧊 Joker (Streak-Freeze)</span><span>☀️ Sonntag</span></div>
+      <div class="tiles" style="margin-top:12px">
+        <div class="tile"><div class="tv">🏅 ${s.best}</div><div class="tl">längste Serie</div></div>
+        <div class="tile"><div class="tv">🃏 ${jokerCount()}</div><div class="tl">Joker als Schutz</div></div>
+        <div class="tile"><div class="tv">${MILESTONES.filter(m => m <= s.best).length}</div><div class="tl">Meilensteine</div></div>
+      </div>`, () => {}, 'Joker schützen deine Serie wie ein Streak-Freeze. Sonntage zählen nicht und pausieren nur.');
+    FX.tap();
+  }
+  // Szene nach dem Check-in: Serie verlängert / verloren
+  function streakScene(k, oldN, next) {
+    const d = parse(k);
+    if (idx(d) === 6) return next();
+    const s = dayStatus(k);
+    const newN = s === 'yes' ? streakAt(k) : 0;
+    if (s === 'no' && oldN < 2) return next();               // kleine Serien nicht extra betrauern
+    const mon = mondayOf(d);
+    const mile = s === 'yes' && MILESTONES.includes(newN);
+    const dots = [0, 1, 2, 3, 4, 5].map(i => {
+      const x = ymd(addDays(mon, i)), st = dayStatus(x), e = state.days[x];
+      return `<span class="sd ${x === k ? 'today' : ''} ${e && e.joker ? 'frz' : st === 'yes' ? 'on' : st === 'no' ? 'off' : ''}"><i>${WD[i]}</i><b>${e && e.joker ? '🧊' : st === 'yes' ? '🔥' : st === 'no' ? '✕' : ''}</b></span>`;
+    }).join('');
+    Games.open(s === 'yes' ? 'Serie 🔥' : 'Serie verloren 💔', `
+      <div class="ss ${s === 'yes' ? 'win' : 'lost'}">
+        <div class="ss-flame">${s === 'yes' ? '🔥' : '💔'}</div>
+        <div class="ss-n" id="ssN">${s === 'yes' ? oldN : oldN}</div>
+        <div class="ss-t">${s === 'yes' ? (mile ? `MEILENSTEIN: ${newN} TAGE! 🏆` : newN === 1 ? 'Neue Serie gestartet!' : 'Serie verlängert!') : `Deine ${oldN}-Tage-Serie ist gerissen`}</div>
+        <div class="ss-dots">${dots}</div>
+        <div class="ss-s">${s === 'yes' ? (state.days[k] && state.days[k].joker ? '🧊 Der Joker hat deine Serie geschützt!' : pick(['Komm morgen wieder, um sie weiter auszubauen!', 'Weiter so – Einhorny ist stolz! 🦄', 'Jeder Tag zählt! 💪']))
+          : 'Kopf hoch – ab morgen baust du eine neue! 💛'}</div>
+        <button class="big primary" id="ssGo" style="width:100%;margin-top:16px">Weiter</button>
+      </div>`, next, s === 'yes' ? 'Tippe auf „Weiter“.' : 'Tipp: Mit einem Joker kannst du einen schlechten Tag im Check-in retten.');
+    if (s === 'yes') {
+      setTimeout(() => {
+        const el = $('ssN'); if (!el) return;
+        el.textContent = newN; el.classList.add('bump');
+        FX.haptic(mile ? [0, 60, 120, 180, 300] : [0, 60, 120]);
+        const r = el.getBoundingClientRect(); FX.sparkle(r.left + r.width / 2, r.top + r.height / 2, '#ff9600');
+        if (mile) { FX.play('goldregen'); FX.play('feuerwerk'); }
+      }, 700);
+    } else FX.haptic([0, 200]);
+    $('ssGo').onclick = () => Games.close(next);
+  }
+
+  // ================= Wochen-Quest: Boss-Kampf oder Garten =================
+  const FLOWERS = ['🌷', '🌻', '🌼', '🌸', '🌺', '💐'];
+  const weekTheme = mon => hash(ymd(mon) + 'theme') % 2 ? 'boss' : 'garden';
+  const bossOf = mon => {
+    let i = hash(ymd(mon) + 'boss') % BOSSES.length;
+    const prev = hash(ymd(addDays(mon, -7)) + 'boss') % BOSSES.length;
+    if (i === prev) i = (i + 1) % BOSSES.length;
+    return BOSSES[i];
+  };
+  const BOSSES = [
+    { e: '🐻', n: 'Gummibär-König', t: 'Herrscher der Fruchtgummis', w: 'Wasser & Geduld 💧', l: ['Ein Bärchen ist kein Bärchen! 🐻', 'Meine Armee ist bunt und klebrig!', 'Nur EINE Tüte… komm schon!'] },
+    { e: '🐙', n: 'Cola-Krake', t: 'Achtarmiger Sprudel-Tyrann', w: 'Zero-Drinks 🧃', l: ['Acht Arme, acht Colas! 🥤', 'Blubb blubb, du wirst schwach!', 'Ich sprudel vor Vorfreude 😈'] },
+    { e: '🐉', n: 'Donut-Drache', t: 'Feuerspeiender Glasur-Lord', w: 'Obst 🍓', l: ['Ich speie Zuckerguss! 🍩🔥', 'Ein Loch in der Mitte – wie in deiner Disziplin!', 'Streusel für alle!'] },
+    { e: '🗿', n: 'Schoko-Golem', t: 'Massiver Kakaoklotz', w: 'Proteindrinks 💪', l: ['70 % Kakao, 100 % Versuchung 🍫', 'Bröckel… ich halt das aus!', 'Ich schmelze nicht. Du schon.'] },
+    { e: '👾', n: 'Muffin-Monster', t: 'Krümelnder Küchenschreck', w: 'Ehrlichkeit 🤞', l: ['Krümel überall! Muhaha 🧁', 'Ich wohn in deiner Bäckerei!', 'Muffin ist Frühstück. Glaub mir.'] },
+    { e: '🤡', n: 'Bonbon-Baron', t: 'Klebriger Zirkusdirektor', w: 'Zähneputzen 🪥', l: ['Willkommen im Zuckerzirkus! 🎪', 'Ein Bonbon für die Dame?', 'Manege frei für Karies!'] },
+    { e: '🧛', n: 'Graf Zuckula', t: 'Saugt dir die Disziplin aus', w: 'Früh ins Bett 🛌', l: ['Ich will dein… Zuckerwasser! 🧛', 'Bei Nacht wird genascht!', 'Muahaha – Mitternachtssnack!'] },
+    { e: '🦖', n: 'Lolli-Saurus', t: 'Urzeit-Lutscher-Echse', w: 'Gemüse-Sticks 🥕', l: ['RAWR! Gib Lolli! 🍭', 'Ich bin 65 Millionen Jahre süß!', 'Kleine Ärmchen, großer Hunger!'] },
+    { e: '🧟', n: 'Zucker-Zombie', t: 'Untoter Süßigkeiten-Junkie', w: 'Ausschlafen 😴', l: ['Zuuuucker… Zuuuucker… 🍬', 'Ich will deine Schokolade… äh, dein Gehirn', 'Schlurf, schlurf, Naschschublade…'] },
+    { e: '🦹', n: 'Captain Karies', t: 'Superschurke der Zahnwelt', w: 'Zahnseide 🦷', l: ['Ich zerstöre deine Zähne! 🦷💥', 'Mein Umhang ist aus Zuckerwatte!', 'Plaque für alle! Muhaha!'] },
+    { e: '🐲', n: 'Marzipan-Hydra', t: 'Drei Köpfe, dreimal Hunger', w: 'Disziplin 🛡️', l: ['Schlag einen Kopf ab, zwei Pralinen wachsen nach!', 'Marzipan ist Gemüse. Mandeln!', 'Hydra-Hunger! 🐲'] },
+    { e: '😈', n: 'Böses Zuckerhorn', t: 'Einhornys dunkler Zwilling', w: 'Einhornys Liebe 💖', l: ['Ich bin du – nur süßer 😈', 'Glitzer? Ich hab Zuckerguss!', 'Einhorny, du Langweiler!'] },
+    { e: '🧙', n: 'Hexe Lebkuchen', t: 'Lockt mit dem Knusperhäuschen', w: 'Einkaufsliste 📝', l: ['Knusper, knusper, Knäuschen… 🏠', 'Komm rein, ich hab Lebkuchen!', 'Ein Bissen kann nicht schaden, Kindchen'] },
+    { e: '🐝', n: 'Honig-Hornisse', t: 'Summt dir Süßes ins Ohr', w: 'Weghören 🙉', l: ['Bsss… nur ein Löffelchen Honig…', 'Honig ist doch gesund! Bsss!', 'Ich stech dir Lust auf Süßes!'] },
+    { e: '🤖', n: 'Snack-O-Mat 3000', t: 'Automat mit eigenem Willen', w: 'Kein Kleingeld 🪙', l: ['BEEP. SNACK. AUSGEBEN.', 'Fehler 404: Disziplin nicht gefunden 🤖', 'Nur 1 €! Nur 1 €!'] },
+    { e: '🦈', n: 'Softdrink-Hai', t: 'Jäger im Zuckermeer', w: 'Leitungswasser 🚰', l: ['Dun-dun… dun-dun… 🥤', 'Ich riech deinen Durst!', 'Im Zuckermeer bin ich König!'] }
+  ];
+  // Level: wie oft dieser Boss schon dran war (er kommt stärker zurück)
+  function bossLevel(mon) {
+    const b = bossOf(mon); let n = 0;
+    for (let m = mondayOf(parse(state.startDate)); m < mon; m = addDays(m, 7)) if (weekTheme(m) === 'boss' && bossOf(m) === b) n++;
+    return n + 1;
+  }
+  function bossHistory() {
+    return allWeeks().filter(m => weekTheme(m) === 'boss' && weekDecided(m)).map(m => ({ m, b: bossOf(m), r: weekResult(m) }));
+  }
+  // Auftritt des neuen Bosses (einmal pro Woche)
+  function bossIntro(force) {
+    const t = today(), mon = mondayOf(t);
+    const wr = weekResult(mon);
+    if (!force && (t < parse(state.startDate) || weekTheme(mon) !== 'boss' || state.bossSeen === ymd(mon) || idx(t) > 4 || wr.base || wr.failed)) return false;
+    if (!$('sheet').hidden || !$('reward').hidden || !$('game').hidden) return false;
+    const b = bossOf(mon), lvl = bossLevel(mon);
+    if (!force) { state.bossSeen = ymd(mon); save(); }
+    Games.open('Ein Boss erscheint! ⚔️', `
+      <div class="bi">
+        <div class="bi-warn">⚠️ WARNUNG ⚠️</div>
+        <div class="bi-e">${b.e}</div>
+        <div class="bi-n">${b.n}${lvl > 1 ? ` <span class="bi-lvl">Lv. ${lvl}</span>` : ''}</div>
+        <div class="bi-t">${b.t}</div>
+        <div class="bi-say">„${pick(b.l)}“</div>
+        <div class="bi-facts"><span>❤️ 5 Leben</span><span>🎯 Schwäche: ${b.w}</span>${lvl > 1 ? '<span>😤 Er ist zurück – und sauer!</span>' : ''}</div>
+        <div class="bi-rule">Jeder zuckerfreie Tag Mo–Fr = 1 Treffer. 5 Treffer = besiegt = ${euro(BASE)} + Boss-Beute.${BONUS ? ` Samstag = kritischer Treffer (+${euro(BONUS)}).` : ''}</div>
+        <button class="big primary" id="biGo" style="width:100%;margin-top:14px">Kampf annehmen ⚔️</button>
+      </div>`, () => {}, 'Der Boss bleibt die ganze Woche. Tipp ihn auf der Startseite an, um ihn zu ärgern.');
+    FX.haptic([0, 120, 240]);
+    $('biGo').onclick = () => { FX.haptic([0, 60]); Games.close(); };
+    return true;
+  }
+  // Boss-Beute nach dem Sieg: eine Kapsel aus dem Automaten (Joker-Chance 1 : 10)
+  function bossLoot(k, next) {
+    const mon = mondayOf(parse(k));
+    if (weekTheme(mon) !== 'boss') return next();
+    toast('💀 Boss besiegt – Beute!');
+    Games.gacha(makeGachaPrize(), gameCtx(k, []), p => { applyPrize(p); toast(`Beute: ${p.title}`); next(); });
+  }
+
+  const flowerOf = k => FLOWERS[hash(k) % FLOWERS.length];
+  function bedEmoji(k, t) {
+    const d = parse(k), e = state.days[k], s = dayStatus(k);
+    if (d > t || d < parse(state.startDate)) return '·';
+    if (e && e.joker) return '🍀';
+    if (s === 'yes') return flowerOf(k);
+    if (s === 'no') return e ? '🥀' : '🍂';
+    return '🌱';
+  }
+  function renderQuest(t, started) {
+    const qc = $('questCard');
+    qc.hidden = !started;
+    if (!started) return;
+    const mon = mondayOf(t), r = weekResult(mon), theme = weekTheme(mon);
+    if (theme === 'boss') {
+      const b = bossOf(mon), hits = Math.min(5, r.yesCount);
+      const msg = r.failed ? `${b.n} ist entkommen 😈 Nächste Woche wartet ein neuer Boss.`
+        : r.bonus ? `Besiegt – mit kritischem Samstags-Treffer! 💥 +${euro(BONUS)}`
+        : r.base ? `Besiegt! 💀${BONUS ? ` Samstag zuckerfrei = kritischer Treffer (+${euro(BONUS)})` : ''}`
+        : `Noch ${5 - hits} Treffer – jeder zuckerfreie Tag ist ein Angriff ⚔️`;
+      const lvl = bossLevel(mon), mood = r.base ? 'dead' : r.failed ? 'laugh' : hits >= 4 ? 'low' : hits >= 2 ? 'rage' : '';
+      qc.innerHTML = `<div class="q-head"><div class="label" style="margin:0">⚔️ Wochen-Boss · tipp ihn an</div><div class="q-msg">${hits}/5 Treffer</div></div>
+        <div class="q-boss"><div class="q-bwrap"><button class="q-be ${mood}" id="qBoss" aria-label="Boss angreifen">${b.e}</button>${mood === 'low' ? '<span class="q-sweat">💦</span>' : mood === 'rage' ? '<span class="q-sweat">💢</span>' : ''}</div>
+        <div><div class="q-name">${b.n} ${lvl > 1 ? `<span class="bi-lvl">Lv. ${lvl}</span>` : ''}</div><div class="q-sub">${b.t} · Schwäche: ${b.w}</div><div class="q-hp">${[0, 1, 2, 3, 4].map(i => `<i class="${i < hits ? 'gone' : ''}"></i>`).join('')}</div>
+        <div class="q-taunt" id="qTaunt">${pick(bossLines(b, r, hits))}</div>
+        <div class="q-msg">${msg}</div></div></div>`;
+      $('qBoss').onclick = () => bossPoke(b, r, hits);
+      qc.querySelector('.q-name').onclick = () => bossIntro(true);
+    } else {
+      const total = Object.keys(state.days).filter(k => idx(parse(k)) < 6 && dayStatus(k) === 'yes').length;
+      qc.innerHTML = `<div class="q-head"><div class="label" style="margin:0">🌱 Wochen-Garten ${r.bonus ? '🌈🌳' : ''}</div><div class="q-msg">${total} Blumen insgesamt</div></div>
+        <div class="q-garden">${[0, 1, 2, 3, 4, 5].map(i => { const k = ymd(addDays(mon, i)); return `<button class="q-bed" data-bed="${k}"><div class="q-pl">${bedEmoji(k, t)}</div><div class="q-soil"></div><div class="q-d">${WD[i]}</div></button>`; }).join('')}</div>
+        <div class="q-msg" style="margin-top:8px">${r.bonus ? 'Perfekte Woche – der Regenbogen-Baum blüht! 🌈' : r.failed ? 'Ein paar Pflanzen sind verwelkt – nächste Woche wird neu gesät 🌱' : 'Jeder zuckerfreie Tag gießt eine Pflanze 💧'}</div>`;
+      qc.querySelectorAll('[data-bed]').forEach(b => b.onclick = () => bedPoke(b, t));
+    }
+  }
+  // ---- Einhorny ↔ Boss / Garten: Interaktion auf der Startseite ----
+  function bossLines(b, r, hits) {
+    if (r.failed) return ['HAHA! Diese Woche gehört mir! 😈', 'Zucker gewinnt immer! 🍬😈', `Tschüss, Einhorny! ${b.e}💨`];
+    if (r.base) return ['*röchel* …nächste Woche komm ich wieder 💀', 'Okay… du hast gewonnen… diesmal 😵', 'Ich… geb… auf… 🏳️'];
+    if (hits >= 3) return ['Aua… das tut echt weh 😵', 'Okay, okay, du bist stark…', 'Nur noch ein Gummibärchen für mich? Bitte? 🥺'];
+    if (hits >= 1) return (b.l || []).concat(['Pff, das war nur ein Kratzer 😤', 'Glück gehabt. Heute Abend krieg ich dich!', 'Eine Cola, nur eine… komm schon 🥤']);
+    return ['Zucker ist Liebe! 😈', 'Diese Woche gehört MIR!', 'Ich hab Schokolade dabei… 🍫😏', 'Einhorny? Lächerlich 😂'].concat(b.l || []);
+  }
+  const UNI_VS = ['Nicht mit mir, {b}! 🦄⚔️', 'Regenbogen-Strahl! 🌈💥', 'Heute Abend gibt\'s den nächsten Treffer!', 'Halt die Klappe, {b} 😤', 'Dein Zucker zieht hier nicht, Digga 💅'];
+  function bossPoke(b, r, hits) {
+    const be = $('qBoss'), ub = $('uniBody');
+    if (!be || !ub) return;
+    // Einhorny schießt einen Regenbogen-Funken zum Boss
+    const a = ub.getBoundingClientRect(), z = be.getBoundingClientRect();
+    const f = document.createElement('div');
+    f.className = 'flyer'; f.textContent = '🌈';
+    f.style.left = a.left + a.width / 2 + 'px'; f.style.top = a.top + a.height / 2 + 'px';
+    document.body.appendChild(f);
+    requestAnimationFrame(() => { f.style.transform = `translate(${z.left + z.width / 2 - a.left - a.width / 2}px, ${z.top + z.height / 2 - a.top - a.height / 2}px) rotate(360deg) scale(.6)`; });
+    setTimeout(() => {
+      f.remove();
+      be.classList.remove('poked'); be.offsetHeight; be.classList.add('poked');
+      FX.sparkle(z.left + z.width / 2, z.top + z.height / 2, '#ff8fab');
+      FX.haptic([0, 50]);
+      const tq = $('qTaunt'); tq.textContent = pick(bossLines(b, r, hits)); tq.classList.remove('pop'); tq.offsetHeight; tq.classList.add('pop');
+    }, 400);
+    const u = $('uni'); u.classList.remove('petted'); u.offsetHeight; u.classList.add('petted');
+    const say = $('uniSay');
+    say.textContent = r.base ? pick(['Ha! Besiegt ist besiegt 😎', `Ruhe in Frieden, ${b.n} 💀`]) : r.failed ? 'Grr… nächste Woche bist du dran! 😤' : pick(UNI_VS).replace('{b}', b.n);
+    say.classList.remove('pop'); say.offsetHeight; say.classList.add('pop');
+    holdUntil = performance.now() + 3500;
+    FX.tap();
+  }
+  function bedPoke(btn, t) {
+    const k = btn.dataset.bed, d = parse(k), s = dayStatus(k), e = state.days[k];
+    const pl = btn.querySelector('.q-pl'); pl.classList.remove('wig'); pl.offsetHeight; pl.classList.add('wig');
+    const say = $('uniSay');
+    say.textContent = d > t ? 'Da wächst noch nichts – erst an dem Tag 🌱'
+      : e && e.joker ? 'Ein Glücksklee! Der Joker hat die Pflanze gerettet 🍀'
+      : s === 'yes' ? pick(['Wie schön die blüht! 🌸', 'Riecht nach Erfolg 😌', 'Die hast du zuckerfrei gegossen 💧'])
+      : s === 'no' ? 'Die päppeln wir nächste Woche wieder auf 💧'
+      : 'Heute Abend gießen wir die hier! 💧';
+    say.classList.remove('pop'); say.offsetHeight; say.classList.add('pop');
+    holdUntil = performance.now() + 3000;
+    const r = pl.getBoundingClientRect(); if (s === 'yes') FX.sparkle(r.left + r.width / 2, r.top + r.height / 2, '#4cd3a0');
+    FX.tap();
+  }
+  // Der Boss provoziert ab und zu von selbst
+  setInterval(() => {
+    const tq = $('qTaunt');
+    if (!tq || document.hidden || !$('game').hidden || !$('reward').hidden) return;
+    const mon = mondayOf(today()), r = weekResult(mon);
+    tq.textContent = pick(bossLines(bossOf(mon), r, Math.min(5, r.yesCount)));
+    tq.classList.remove('pop'); tq.offsetHeight; tq.classList.add('pop');
+  }, 11000);
+
+  // Kurze Zwischenszene nach dem Check-in, dann geht es weiter (next)
+  function questScene(k, kind, before, after, next) {
+    const d = parse(k);
+    if (idx(d) === 6 || (before.failed && kind !== 'fail')) return next();
+    const mon = mondayOf(d);
+    const done = () => { clearTimeout(timer); Games.close(next); };
+    let timer;
+    if (weekTheme(mon) === 'boss') {
+      const b = bossOf(mon);
+      const crit = after.bonus && !before.bonus;
+      const dead = after.base && !before.base;
+      const title = kind === 'fail' ? (after.failed && !before.failed ? `${b.n} entkommt! 😈` : `${b.n} lacht dich aus 😈`)
+        : crit ? 'KRITISCHER TREFFER! 💥' : dead ? `${b.n} BESIEGT! 💀` : 'Treffer! ⚔️';
+      const sub = kind === 'fail' ? 'HAHAHA! …nächstes Mal, Einhorny.' : dead || crit ? '' : `Noch ${5 - Math.min(5, after.yesCount)} Treffer bis zum Sieg`;
+      Games.open('Wochen-Boss ⚔️', `<div class="qs" id="qs">
+        <div class="qs-arena"><span class="qs-uni">🦄</span>${kind !== 'fail' ? '<span class="beam"></span>' : ''}<span class="qs-boss" id="qsBoss">${b.e}</span></div>
+        <div class="qs-title" style="animation-delay:.5s">${title}</div><div class="qs-sub">${sub}</div><div class="qs-skip">tippen zum Weiter</div></div>`, next);
+      if (kind === 'fail') { $('qsBoss').classList.add('laugh'); FX.haptic([0, 200]); }
+      else setTimeout(() => {
+        $('qsBoss').classList.add(dead || crit ? 'dead' : 'hit');
+        $('qs').insertAdjacentHTML('beforeend', `<div class="dmg ${crit ? 'crit' : ''}">${crit ? `+${euro(BONUS)} 💥` : '−1 ❤️'}</div>`);
+        FX.haptic(dead || crit ? [0, 60, 120, 180, 300] : [0, 60]);
+        const r = $('qsBoss').getBoundingClientRect(); FX.sparkle(r.left + r.width / 2, r.top + r.height / 2, '#ffd93d');
+      }, 380);
+    } else {
+      const flower = flowerOf(k), perfect = after.bonus && !before.bonus;
+      Games.open('Wochen-Garten 🌱', `<div class="qs" id="qs">
+        <span class="qs-pot" id="qsPot">🌱${kind !== 'fail' ? '<span class="qs-can">🚿</span><span class="drop" style="left:30%">💧</span><span class="drop" style="left:55%;animation-delay:.2s">💧</span>' : ''}</span>
+        <div class="qs-title" style="animation-delay:1s">${kind === 'fail' ? 'Oh nein, verwelkt 🥀' : perfect ? 'Der Regenbogen-Baum blüht! 🌈' : 'Gegossen – sie blüht! 🌸'}</div>
+        <div class="qs-sub">${kind === 'fail' ? 'Morgen gießen wir wieder 💧' : ''}</div><div class="qs-skip">tippen zum Weiter</div></div>`, next);
+      setTimeout(() => {
+        const pot = $('qsPot'); if (!pot) return;
+        pot.firstChild.textContent = kind === 'fail' ? '🥀' : perfect ? '🌳' : flower;
+        pot.classList.add(kind === 'fail' ? 'a-droop' : 'q-pl', 'grow');
+        FX.haptic([0, 80]);
+        if (kind !== 'fail') { const r = pot.getBoundingClientRect(); FX.sparkle(r.left + r.width / 2, r.top + r.height / 3, perfect ? '#ffd93d' : '#4cd3a0'); }
+      }, 900);
+    }
+    $('qs').onclick = done;
+    timer = setTimeout(done, 2600);
+  }
+
+  // ================= Sicher speichern =================
+  // localStorage + IndexedDB (doppelt), dauerhafter Speicher, Datei-Backup über das Teilen-Menü
+  const IDB = {
+    _db: null,
+    open() {
+      if (this._db) return this._db;
+      this._db = new Promise(res => {
+        try { const r = indexedDB.open('zuckerfrei', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => res(null); }
+        catch (e) { res(null); }
+      });
+      return this._db;
+    },
+    async get() {
+      const db = await this.open(); if (!db) return null;
+      return new Promise(res => { try { const q = db.transaction('kv').objectStore('kv').get('state'); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); } catch (e) { res(null); } });
+    },
+    async set(v) { const db = await this.open(); if (!db) return; try { db.transaction('kv', 'readwrite').objectStore('kv').put(v, 'state'); } catch (e) {} }
+  };
+  async function shareBackup() {
+    if (realState) return toast('Im Demo-Modus gibt es kein Backup 🎬');
+    const txt = JSON.stringify(state);
+    const name = `zuckerfrei-backup-${ymd(today())}.json`;
+    try {
+      const file = new File([txt], name, { type: 'application/json' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: 'Zuckerfrei-Backup' });
+      else { const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); }
+      state.lastBackup = Date.now(); save(); render(); toast('Backup gesichert 💾');
+    } catch (e) { if (!e || e.name !== 'AbortError') toast('Backup hat nicht geklappt'); }
+  }
+  function importBackupFile(file) {
+    if (realState) return toast('Im Demo-Modus nicht möglich 🎬');
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const s = JSON.parse(rd.result);
+        if (!s || typeof s.days !== 'object' || !s.startDate) throw 0;
+        if (!confirm(`Backup vom ${s.savedAt ? new Date(s.savedAt).toLocaleDateString('de-DE') : '?'} laden? Der aktuelle Stand wird ersetzt.`)) return;
+        state = Object.assign(defaults(), s); save(); render(); toast('Backup geladen ✓');
+      } catch (e) { toast('Diese Datei ist kein gültiges Backup'); }
+    };
+    rd.readAsText(file);
+  }
+  function renderBackupCard(started) {
+    const bc = $('backupCard');
+    const n = Object.keys(state.days).length;
+    const due = started && n >= 3 && (!state.lastBackup || Date.now() - state.lastBackup > 7 * 864e5);
+    bc.hidden = !due;
+    if (!due) return;
+    bc.innerHTML = `<div class="label">💾 Backup</div>
+      <div class="hint" style="margin-top:0">${state.lastBackup ? `Letztes Backup: ${new Date(state.lastBackup).toLocaleDateString('de-DE')}.` : 'Noch kein Backup gemacht.'} Sichere deinen Fortschritt in „Dateien“ oder schick ihn dir selbst – falls das iPhone mal Daten verliert.</div>
+      <div class="btns" style="grid-template-columns:1fr;margin-top:12px"><button class="big primary" data-bk>Jetzt sichern 💾</button></div>`;
+    bc.querySelector('[data-bk]').onclick = shareBackup;
+  }
+
+  const RAINBOW = `<svg viewBox="0 0 180 96">${['#ff5c8a', '#ffb547', '#ffd93d', '#4cd3a0', '#5cb8ff', '#b57bff'].map((c, i) =>
+    `<path d="M ${12 + i * 11} 92 A ${78 - i * 11} ${78 - i * 11} 0 0 1 ${168 - i * 11} 92" stroke="${c}" style="animation-delay:${i * .1}s"/>`).join('')}</svg>`;
+
+  // opts: { scene, title, amount, text, streak, debtFrom, debtTo, extra }
+  // Text in sichtbare Zeichen zerlegen (Emojis wie ❤️ bleiben ganz)
+  const graphemes = t => window.Intl && Intl.Segmenter ? [...new Intl.Segmenter('de', { granularity: 'grapheme' }).segment(t)].map(x => x.segment) : [...t];
+  function reward(o) {
+    if (!$('game').hidden) Games.close();
+    const sc = FX.SCENES[o.scene] || FX.SAD[o.scene] || { anim: 'pop', emoji: '💛' };
+    const em = $('rwEmoji');
+    em.className = 'reward-emoji';
+    em.offsetHeight;                                   // Animation neu starten
+    em.className = 'reward-emoji a-' + sc.anim;
+    em.innerHTML = sc.anim === 'rainbow' ? RAINBOW : (o.emoji || sc.emoji);
+    $('rwTitle').className = 'wave';
+    $('rwTitle').innerHTML = graphemes(o.title).map((ch, i) => `<span style="animation-delay:${.15 + i * .035}s">${ch}</span>`).join('');
+    const rays = $('rwRays');
+    rays.className = 'rays';
+    if (sc.rays || o.big) { rays.offsetHeight; rays.className = 'rays on'; }
+    $('rwAmount').className = 'amount' + (o.amount ? ' count' : '');
+    $('rwAmount').textContent = o.amount || '';
+    $('rwAmount').hidden = !o.amount;
+    $('rwStreak').textContent = o.streak >= 2 ? `🔥 ${o.streak} Tage in Folge` : '';
+    $('rwText').innerHTML = o.text || '';
+    $('rwDebt').innerHTML = '';
+    const box = $('reward').querySelector('.reward-box');
+    box.classList.toggle('sad', !!FX.SAD[o.scene]);
+    box.querySelectorAll('.extra').forEach(n => n.remove());
+    $('rwClose').textContent = o.extra ? 'Nein, danke' : 'Weiter';
+    $('rwClose').className = o.extra ? 'small' : 'big primary';
+    if (o.extra) {
+      const b = document.createElement('button');
+      b.className = 'big primary extra';
+      b.style.marginBottom = '10px';
+      b.textContent = o.extra.label;
+      b.onclick = () => closeOverlay($('reward'), o.extra.fn);
+      $('rwClose').before(b);
+    }
+    $('reward').hidden = false;
+    box.classList.remove('thump');
+    box.style.animation = 'none'; box.offsetHeight; box.style.animation = '';
+    if (o.big) box.classList.add('thump');
+    FX.clear();
+    if (o.scenes) o.scenes.forEach((n, i) => setTimeout(() => FX.play(n), i * 250));
+    else if (o.scene) FX.play(o.scene);
+    if (o.debtFrom != null) rollDebt(o.debtFrom, o.debtTo);
+  }
+  function rollDebt(from, to) {
+    const el = $('rwDebt');
+    const t0 = performance.now(), dur = 1800;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.innerHTML = `${T().card}: <b>${euro(Math.round(from + (to - from) * e))}</b>`;
+      if (k < 1) requestAnimationFrame(step);
+    };
+    setTimeout(() => requestAnimationFrame(step), 500);
+  }
+  // Serie: zuckerfreie Tage in Folge (Sonntage werden übersprungen)
+  function streakAt(k) {
+    let n = 0, d = parse(k);
+    const start = parse(state.startDate);
+    while (d >= start) {
+      if (idx(d) !== 6) { if (dayStatus(ymd(d)) !== 'yes') break; n++; }
+      d = addDays(d, -1);
+    }
+    return n;
+  }
+  const DAY_SCENES = Object.keys(FX.SCENES).filter(n => n !== 'muenzen' && n !== 'flamme');
+
+  $('rwClose').onclick = () => closeOverlay($('reward'), () => setTimeout(maybePayout, 300));
+
+  let toastTimer;
+  function toast(msg) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  // ---------- Einstellungen ----------
+  // Einstellungen speichern sich selbst (bei jeder Änderung)
+  function saveField(id) {
+    const v = $(id).value;
+    if (id === 'setName') state.name = v.trim();
+    const numOk = x => x === '' || Number(x.replace(',', '.')) >= 0;
+    if (['setDebt', 'setPerWeek', 'setSatBonus'].includes(id) && !numOk(v)) { toast('Bitte einen gültigen Betrag eingeben'); return render(); }
+    if (id === 'setDebt') state.startDebt = Number(v.replace(',', '.')) || 0;
+    if (id === 'setPerWeek') state.perWeek = Number(v.replace(',', '.')) || 0;
+    if (id === 'setSatBonus') state.satBonus = Number(v.replace(',', '.')) || 0;
+    if (id === 'setPayout') state.payout = v.trim();
+    if (id === 'setGoalMode') state.goalMode = v;
+    if (id === 'setStart') { if (!v) return render(); state.startDate = ymd(mondayOf(parse(v))); }
+    if (id === 'setGebaeck') state.gebaeck = $(id).checked;
+    if (id === 'setGebaeckStart' || id === 'setGebaeckEnd') {
+      const gs = $('setGebaeckStart').value, ge = $('setGebaeckEnd').value;
+      if (gs && ge && gs > ge) { toast('Gebäckmodus: Beginn muss vor dem Ende liegen'); return render(); }
+      if (gs) state.gebaeckStart = gs; if (ge) state.gebaeckEnd = ge;
+    }
+    if (id === 'setMode') state.mode = v;
+    if (id === 'setRitual') state.ritual = v;
+    if (id === 'setPrize') state.prizeMode = v || undefined;
+    save(); render(); toast('Gespeichert ✓');
+  }
+  ['setName', 'setDebt', 'setPerWeek', 'setSatBonus', 'setPayout', 'setGoalMode', 'setStart', 'setGebaeck', 'setGebaeckStart', 'setGebaeckEnd', 'setMode', 'setRitual', 'setPrize']
+    .forEach(id => $(id).addEventListener('change', () => saveField(id)));
+  $('copyBackup').onclick = async () => {
+    const txt = JSON.stringify(state);
+    $('backup').value = txt;
+    try { await navigator.clipboard.writeText(txt); toast('Backup kopiert – z. B. in Notizen einfügen'); }
+    catch (e) { $('backup').select(); toast('Text markiert – bitte manuell kopieren'); }
+  };
+  $('restoreBackup').onclick = () => {
+    try {
+      const s = JSON.parse($('backup').value);
+      if (!s || typeof s.days !== 'object' || !s.startDate) throw 0;
+      if (!confirm('Aktuellen Stand durch das Backup ersetzen?')) return;
+      state = Object.assign(defaults(), s); save(); render(); toast('Wiederhergestellt ✓');
+    } catch (e) { toast('Das Backup ist ungültig'); }
+  };
+  $('resetAll').onclick = () => {
+    if (realState) return toast('Im Demo-Modus nicht möglich 🎬');
+    if (!confirm('Wirklich alles löschen? Das kann nicht rückgängig gemacht werden.')) return;
+    state = defaults(); save(); render(); toast('Zurückgesetzt');
+  };
+
+
+  // Animations-Vorschau in den Einstellungen
+  $('fxList').innerHTML = Object.entries(FX.SCENES).map(([k, v]) => `<button class="small" data-fx="${k}">${v.emoji} ${v.name}</button>`).join('');
+  $('fxList').querySelectorAll('[data-fx]').forEach(b => b.onclick = () =>
+    reward({ scene: b.dataset.fx, title: FX.SCENES[b.dataset.fx].name, text: 'Vorschau', streak: 3 }));
+  $('fxList').insertAdjacentHTML('beforeend', Object.entries(FX.SAD).map(([k, v]) => `<button class="small" data-sad="${k}">${v.emoji} ${v.name}</button>`).join(''));
+  $('fxList').querySelectorAll('[data-sad]').forEach(b => b.onclick = () =>
+    reward({ scene: b.dataset.sad, title: FX.SAD[b.dataset.sad].name, text: 'Vorschau (nicht geschafft)' }));
+
+  // Abends (ab 18 Uhr): Check-in sofort öffnen, wenn heute noch nichts eingetragen ist
+  function autoCheckin() {
+    const t = today(), k = ymd(t);
+    if (t < parse(state.startDate) || state.days[k]) return;
+    const h = new Date().getHours();
+    if (h < EVENING_HOUR && h >= DAY_START_HOUR) return;
+    if (!$('sheet').hidden || !$('reward').hidden || !$('game').hidden || !$('payPop').hidden) return;
+    openCheckin(k);
+  }
+
+  Games.init();
+  // ---------- Tab-Leiste ----------
+  var curTab = 'Home';
+  function showTab(name, dir) {
+    curTab = name;
+    ['Home', 'Progress', 'Coll', 'More'].forEach(n => { $('tab' + n).hidden = n !== name; });
+    $('tabbar').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+    window.scrollTo(0, 0);
+    if (name === 'Progress') renderStats();
+    if (name === 'Coll') renderCollection();
+    const t = $('tab' + name); t.classList.remove('in', 'in-left', 'in-right'); t.offsetHeight; t.classList.add(dir ? 'in-' + dir : 'in');
+    try { sessionStorage.setItem('zf-tab', name); } catch (e) {}
+  }
+  $('tabbar').querySelectorAll('button').forEach(b => b.onclick = () => { FX.tap(); showTab(b.dataset.tab); });
+  $('debtMini').onclick = () => { FX.tap(); showTab('Progress'); };
+  // Tipps nur auf Bedarf
+  $('sheetHelp').onclick = () => { $('sheetHow').hidden = !$('sheetHow').hidden; $('sheetHelp').classList.toggle('on', !$('sheetHow').hidden); FX.tap(); };
+  $('hapticTest').onclick = () => {
+    FX.tap();
+    $('hapticNote').textContent = typeof navigator.vibrate === 'function'
+      ? 'Vibration ausgelöst (Android/Browser mit Vibrations-Unterstützung).'
+      : 'Tap ausgelöst – gespürt? Wenn nicht: iOS 18+ und „System-Haptik“ unter Einstellungen → Töne & Haptik prüfen.';
+  };
+  $('vAdd').onclick = () => { addVoucher($('vNew').value); $('vNew').value = ''; };
+  $('vNew').addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); addVoucher($('vNew').value); $('vNew').value = ''; $('vNew').blur(); } });
+  // ================= Gestensteuerung =================
+  const TABS = ['Home', 'Progress', 'Coll', 'More'];
+  // Bereiche mit eigenen Gesten: dort greifen die App-Gesten nicht
+  const OWN_GESTURE = '.stack, .sl-track, .fi-btn, .dl-w, .board, .wheel, .scratch, .sig-pad, .sw-btn, .hf, .cdl, .gift, .rotary, input, textarea, select, .q-garden, .week, .album, [data-noswipe]';
+  // 1) Links/rechts wischen = Tab wechseln
+  (() => {
+    let sx = 0, sy = 0, st = 0, ok = false;
+    document.querySelector('main').addEventListener('touchstart', ev => {
+      const t = ev.touches[0];
+      ok = ev.touches.length === 1 && !ev.target.closest(OWN_GESTURE) && ['sheet', 'game', 'reward', 'payPop'].every(id => $(id).hidden);
+      sx = t.clientX; sy = t.clientY; st = performance.now();
+    }, { passive: true });
+    document.querySelector('main').addEventListener('touchend', ev => {
+      if (!ok) return;
+      const t = ev.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy, dt = performance.now() - st;
+      if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * .6 || dt > 700) return;
+      const i = TABS.indexOf(curTab), j = dx < 0 ? i + 1 : i - 1;
+      if (j < 0 || j >= TABS.length) { FX.tap(); return; }
+      FX.tap();
+      showTab(TABS[j], dx < 0 ? 'left' : 'right');
+    }, { passive: true });
+  })();
+  // 2) Fenster nach unten ziehen = schließen (Bottom-Sheet-Geste)
+  function dragToClose(panel, scroller, onClose) {
+    let y0 = null, dy = 0, active = false;
+    panel.addEventListener('touchstart', ev => {
+      if (ev.touches.length !== 1 || ev.target.closest(OWN_GESTURE)) { y0 = null; return; }
+      const sc = scroller();
+      if (sc && sc.scrollTop > 2) { y0 = null; return; }         // nur wenn ganz oben gescrollt
+      y0 = ev.touches[0].clientY; dy = 0; active = false;
+    }, { passive: true });
+    panel.addEventListener('touchmove', ev => {
+      if (y0 == null) return;
+      dy = ev.touches[0].clientY - y0;
+      if (!active && dy > 12) { active = true; panel.style.transition = 'none'; }
+      if (active) { ev.preventDefault(); panel.style.transform = `translateY(${Math.max(0, dy)}px)`; }
+    }, { passive: false });
+    const end = () => {
+      if (y0 == null) return;
+      y0 = null;
+      if (!active) return;
+      panel.style.transition = 'transform .25s ease';
+      if (dy > 110) { panel.style.transform = `translateY(100%)`; setTimeout(() => { panel.style.transform = ''; panel.style.transition = ''; onClose(); }, 200); FX.tap(); }
+      else { panel.style.transform = ''; setTimeout(() => { panel.style.transition = ''; }, 260); }
+    };
+    panel.addEventListener('touchend', end);
+    panel.addEventListener('touchcancel', end);
+  }
+  dragToClose(document.querySelector('#sheet .sheet'), () => document.querySelector('#sheet .sheet'), () => closeSheet());
+  dragToClose(document.querySelector('#game .game-box'), () => $('gameBody'), () => $('gameX').click());
+  dragToClose(document.querySelector('#reward .reward-box'), () => null, () => $('rwClose').click());
+
+  $('demoStart').onclick = () => { FX.tap(); enterDemo(); };
+  $('demoExit').onclick = () => { FX.tap(); exitDemo(); };
+  $('tbMoney').onclick = () => { FX.tap(); showTab('Progress'); };
+  $('tbLevel').onclick = () => { FX.tap(); showTab('Coll'); };
+  $('streakBtn').onclick = openStreak;
+  // Seite dahinter sperren, solange ein Fenster (Check-in, Spiel, Belohnung) offen ist
+  const lockScroll = () => document.documentElement.classList.toggle('locked', ['sheet', 'game', 'reward', 'payPop'].some(id => !$(id).hidden));
+  ['sheet', 'game', 'reward', 'payPop'].forEach(id => new MutationObserver(lockScroll).observe($(id), { attributes: true, attributeFilter: ['hidden'] }));
+  $('setMode').insertAdjacentHTML('beforeend', MODE_KEYS.map(m => `<option value="${m}">${MODES[m]}</option>`).join(''));
+  $('modeList').innerHTML = MODE_KEYS.map(m => `<button class="small" data-mode="${m}">${MODES[m]}</button>`).join('')
+    + `<button class="small" data-prize="scratch">🎟️ Rubbellos</button><button class="small" data-prize="wheel">🎡 Glücksrad</button>`
+    + `<button class="small" data-prize="shake">🎁 Geschenkbox</button><button class="small" data-prize="gacha">🥚 Kapselautomat</button>`
+    + `<button class="small" data-quest="1">⚔️🌱 Wochen-Quest</button><button class="small" data-onb="1">👋 Begrüßung</button><button class="small" data-streak="1">🔥 Serie-Szene</button>`
+    + Object.entries(RITUALS).map(([k, v]) => `<button class="small" data-rit="${k}">${v}</button>`).join('');
+  const demoK = () => ymd(today());
+  $('modeList').querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+    const m = b.dataset.mode, k = demoK();
+    if (m === 'classic') return openSheet(k);
+    Games[m](gameCtx(k, shuffle(countersFor(k))), vals => Games.open('Vorschau', `<div class="sum-verdict">Ergebnis (nicht gespeichert)</div><div class="sum-pills">${countersFor(k).map(c => `<span class="pill">${c.icon} ${showVal(c, vals[c.id])}</span>`).join('')}</div>`));
+  });
+  $('modeList').querySelectorAll('[data-prize]').forEach(b => b.onclick = () => {
+    const old = state.prizeMode; state.prizeMode = b.dataset.prize;
+    dayPrize({ scene: 'konfetti', title: 'Vorschau', text: '(Preise in der Vorschau werden nicht gutgeschrieben)' }, true);
+    state.prizeMode = old;
+  });
+  $('modeList').querySelectorAll('[data-quest]').forEach(b => b.onclick = () => {
+    const r = weekResult(mondayOf(today()));
+    questScene(ymd(addDays(today(), idx(today()) === 6 ? -1 : 0)), 'hit', r, r, () => {});
+  });
+  $('modeList').querySelectorAll('[data-onb]').forEach(b => b.onclick = () => onboarding(true));
+  $('modeList').querySelectorAll('[data-streak]').forEach(b => b.onclick = () => { const s = streakInfo(); const k = ymd(today()); if (dayStatus(k) === 'yes') streakScene(k, Math.max(0, s.n - 1), () => {}); else openStreak(); });
+  $('modeList').querySelectorAll('[data-rit]').forEach(b => b.onclick = () => {
+    Games.open('Vorschau', '<div id="swDemo"></div>'); runRitual(b.dataset.rit, $('swDemo'), () => Games.close());
+  });
+  $('fileBackup').onclick = shareBackup;
+  $('fileRestore').onclick = () => $('fileInput').click();
+  $('fileInput').onchange = ev => { const f = ev.target.files[0]; if (f) importBackupFile(f); ev.target.value = ''; };
+
+  // Neu zeichnen, wenn die App wieder geöffnet wird (Tageswechsel)
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { payoutSnoozed = false; render(); autoCheckin(); setTimeout(maybePayout, 500); } });
+  render();
+  try { const t0 = sessionStorage.getItem('zf-tab'); if (t0 && t0 !== 'Home') showTab(t0); } catch (e) {}
+  // Abgleich mit der IndexedDB-Kopie: die neuere gewinnt (rettet Daten, falls localStorage geleert wurde)
+  IDB.get().then(txt => {
+    let restored = false;
+    try {
+      const s = txt ? JSON.parse(txt) : null;
+      if (s && s.days && (!loadedFromLocal || (s.savedAt || 0) > (state.savedAt || 0))) { state = Object.assign(defaults(), s); restored = !loadedFromLocal; }
+    } catch (e) {}
+    storageReady = true;
+    save(); render();
+    if (restored) toast('Daten aus der Sicherung wiederhergestellt 💾');
+    autoCheckin();
+    setTimeout(() => { if (!onboarding(false) && !maybePayout()) bossIntro(false); }, 600);
+  });
+  // Dauerhaften Speicher anfordern (Browser darf die Daten dann nicht einfach aufräumen)
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persisted().then(p => p || navigator.storage.persist()).then(p => {
+      $('persistInfo').textContent = (p ? '✅ Dauerhafter Speicher aktiv. ' : 'ℹ️ Dauerhafter Speicher nicht bestätigt. ') + 'Sicher trotzdem ab und zu ein Backup in „Dateien“.';
+    }).catch(() => {});
+  }
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>

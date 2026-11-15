@@ -1,0 +1,12 @@
+# Nur die App-Dateien werden veröffentlicht – alles andere bleibt lokal
+*
+!.gitignore
+!index.html
+!fx.js
+!games.js
+!games.css
+!sw.js
+!manifest.webmanifest
+!icon-192.png
+!icon-512.png
+!apple-touch-icon.png
