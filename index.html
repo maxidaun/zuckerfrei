@@ -518,6 +518,9 @@
         <label class="field">Name (für die Begrüßung)
           <input type="text" id="setName" autocomplete="off" placeholder="Dein Name">
         </label>
+        <label class="field">Ansprache
+          <select id="setGender"><option value="x">✨ neutral</option><option value="f">♀ weiblich</option><option value="m">♂ männlich</option></select>
+        </label>
         <label class="field">Worum geht's?
           <select id="setGoalMode"><option value="debt">💸 Schulden abbauen</option><option value="save">🐷 Auf ein Ziel sparen</option></select>
         </label>
@@ -664,7 +667,7 @@
   const KEY = 'zuckerfrei-v1';
   // Beträge und Wortwahl kommen aus dem Stand (werden in der Begrüßung abgefragt) – nichts ist fest eingebaut
   let BASE = 0, BONUS = 0;
-  const applyDeal = () => { BASE = Number(state.perWeek) || 0; BONUS = Number(state.satBonus) || 0; };
+  const applyDeal = () => { BASE = Number(state.perWeek) || 0; BONUS = Number(state.satBonus) || 0; window.zfGender = state.gender || 'x'; };
   const isSave = () => state.goalMode === 'save';
   const goalAmount = () => Number(state.startDebt) || 0;
   const T = () => isSave()
@@ -692,7 +695,9 @@
   const today = () => { const n = new Date(Date.now() - DAY_START_HOUR * 3600e3); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
   const fmtDate = d => `${d.getDate()}.${d.getMonth() + 1}.`;
   const euro = n => n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: n % 1 ? 2 : 0 });
-  const pick = a => a[Math.floor(Math.random() * a.length)];
+  // Ansprache: "{weiblich|männlich|neutral}" in Texten je nach Einstellung auflösen
+  const gtx = str => str.replace(/\{([^{}|]*)\|([^{}|]*)\|([^{}|]*)\}/g, (_, f, m, n) => state.gender === 'f' ? f : state.gender === 'm' ? m : n);
+  const pick = a => { const v = a[Math.floor(Math.random() * a.length)]; return typeof v === 'string' ? gtx(v) : v; };
 
   // ---------- Speicher ----------
   function defaults() {
@@ -903,6 +908,7 @@
     setIf('setSatBonus', state.satBonus || '');
     setIf('setPayout', state.payout || '');
     $('setGoalMode').value = isSave() ? 'save' : 'debt';
+    $('setGender').value = state.gender || 'x';
     $('setDebtL').textContent = isSave() ? 'Sparziel (€, optional)' : 'Schulden insgesamt (€)';
     setIf('setStart', state.startDate);
     setIf('setName', state.name || '');
@@ -971,7 +977,7 @@
     weihnacht: { acc: '🎄', fx: 'snow',    say: ['Gebäckmodus aktiv! Max. {c} Plätzchen 🍪', 'Ho ho ho – zuckerfrei durch den Advent!', 'Ein, zwei Plätzchen sind okay. Drei nicht! 🍪', 'Ich hab Lebkuchen gesehen… und widerstanden! 🎄', 'Jingle Bells, zuckerfrei! 🔔', 'Plätzchen zählen ist mein neues Hobby 🍪'] },
     schuldenfrei: { acc: '👑', fx: 'party', say: ['ZIEL ERREICHT! Du bist eine Legende! 👑', 'Wir haben es geschafft!!!'] }
   };
-  const PET = ['Uiii, nicht so stürmisch 😏', 'Mehr davon und ich werd Einhorny 🫣', 'Ey, Pfoten weg vom Horn! …okay, noch einmal.', 'Bro, ich bin kein Touchscreen. Doch, bin ich.', 'Digga, das kitzelt 😂', 'Hihi, das kitzelt!', 'Mehr Streicheleinheiten! 🦄', 'Du bist die Beste!', '*glitzer glitzer*', 'Hast du heute schon Wasser getrunken? 💧', 'Ich glaub an dich!', 'Neeeigh! 🦄'];
+  const PET = ['Uiii, nicht so stürmisch 😏', 'Mehr davon und ich werd Einhorny 🫣', 'Ey, Pfoten weg vom Horn! …okay, noch einmal.', 'Bro, ich bin kein Touchscreen. Doch, bin ich.', 'Digga, das kitzelt 😂', 'Hihi, das kitzelt!', 'Mehr Streicheleinheiten! 🦄', '{Du bist die Beste!|Du bist der Beste!|Du bist einfach top!}', '*glitzer glitzer*', 'Hast du heute schon Wasser getrunken? 💧', 'Ich glaub an dich!', 'Neeeigh! 🦄'];
 
   function mascotMood(t, started) {
     const key = ymd(t), e = state.days[key], wi = idx(t), h = new Date().getHours();
@@ -1133,12 +1139,12 @@
   const CHEEKY = [
     'Digga, Zucker ist sowas von cringe 💀', 'Bro, das Gummibärchen guckt dich an. Ignorier den Lauch.', 'Sheesh, du bist heute on fire 🔥 no cap',
     'Wallah, wenn du jetzt Cola trinkst, bin ich beleidigt.', 'Lowkey stolz auf dich. Highkey auch.', 'Ey, Schokolade ist auch nur braunes Fett mit Ego.',
-    'Was guckst du? Check ein, Diggi.', 'Ehrenfrau-Move: heute kein Zucker. Ehrenlos: Gummibärchen.', 'Zucker? Kenn ich nicht. Nie gehört. Wer ist das?',
+    'Was guckst du? Check ein, Diggi.', '{Ehrenfrau|Ehrenmann|Ehren}-Move: heute kein Zucker. Ehrenlos: Gummibärchen.', 'Zucker? Kenn ich nicht. Nie gehört. Wer ist das?',
     'Bist du gerade an der Süßigkeiten-Schublade? Ich seh alles 👀', 'Ich schwör, ein Keks hat mich gerade dumm angemacht.',
     'Sus: du bist auffällig nah am Kühlschrank 🤨', 'Brudi, zuckerfrei ist das neue Gym. Lass pumpen 💪',
     'Ich hab mehr Glitzer als du Willenskraft. …Spaß, du bist ein Biest 💪', 'Mach mal Check-in, sonst gibt\'s Pferdeküsse 💋🐴',
     'Junge Junge, wer hat dir erlaubt, so gut zu sein?', 'Bin heute bisschen toxic: Zucker ist dein Ex. Nicht zurückschreiben.',
-    'Slay. Einfach nur slay. 💅', 'Mies am Abliefern, nicht am Naschen. So muss das.', 'Gönn dir… Wasser. 💧 Ja ich weiß, enttäuschend.',
+    '{Slay. Einfach nur slay. 💅|Stabil. Einfach nur stabil. 😎|Slay. Einfach nur slay. ✨}', 'Mies am Abliefern, nicht am Naschen. So muss das.', 'Gönn dir… Wasser. 💧 Ja ich weiß, enttäuschend.',
     'Die Haribo-Gang hat Angst vor dir. Zu Recht.', 'Ich bin ein Einhorn, kein Babysitter. …okay, bisschen schon.',
     'Bruh. Ein Donut hat dir gerade zugezwinkert. Block den.', 'Real talk: du bist krasser als jeder Energy-Drink.',
     'Mies verliebt in deine Disziplin, ich sag\'s wie\'s ist 😳', 'Dein Süßhunger hat Hausverbot. Ich bin der Türsteher.',
@@ -1948,7 +1954,9 @@
     const steps = [
       () => `<div class="ob-e">🦄</div><h2 class="ob-h">Hi! Ich bin Einhorny.</h2>
         <p class="ob-p">Ich helf dir, zuckerfrei zu bleiben – und belohne dich dafür. Wie darf ich dich nennen?</p>
-        <input type="text" id="obName" placeholder="Dein Name" value="${q(state.name)}" maxlength="30" enterkeyhint="next">`,
+        <input type="text" id="obName" placeholder="Dein Name" value="${q(state.name)}" maxlength="30" enterkeyhint="next">
+        <p class="ob-p" style="margin:12px 0 8px">Wie soll ich dich ansprechen?</p>
+        <div class="ob-mode three"><button data-g="f" class="${state.gender === 'f' ? 'on' : ''}">♀ weiblich</button><button data-g="m" class="${state.gender === 'm' ? 'on' : ''}">♂ männlich</button><button data-g="x" class="${!state.gender || state.gender === 'x' ? 'on' : ''}">✨ neutral</button></div>`,
       () => `<div class="ob-e">🤝</div><h2 class="ob-h">Euer Deal</h2>
         <p class="ob-p">Worum spielst du?</p>
         <div class="ob-mode"><button data-mode="debt" class="${mode === 'debt' ? 'on' : ''}">💸 Schulden abbauen</button><button data-mode="save" class="${mode === 'save' ? 'on' : ''}">🐷 Auf ein Ziel sparen</button></div>
@@ -1972,7 +1980,7 @@
           <div>Ab 18 Uhr öffnet sich der <b>Check-in</b> von selbst – jeden Tag in einer anderen Spiel-Variante 🎲</div>
           <div>Zuckerfreie Tage am Stück = deine <b>Serie</b> 🔥</div>
           <div><b>Joker</b> 🃏 retten einen schwachen Tag – es gibt sie für zuckerfreie Sonntage und mit Glück bei Gewinnspielen</div>
-          <div>Jede zweite Woche wartet ein <b>Boss</b> ⚔️ – jeder zuckerfreie Tag ist ein Treffer</div>
+          <div>Jede Woche wartet ein <b>Boss</b> ⚔️ – jeder zuckerfreie Tag ist ein Treffer</div>
         </div>`,
       () => `<div class="ob-e">🔔</div><h2 class="ob-h">Abend-Erinnerung</h2>
         <p class="ob-p">Damit du den Check-in nicht vergisst: In der <b>Kurzbefehle</b>-App unter <b>Automation → Tageszeit</b> (z. B. 21:30, täglich, „Sofort ausführen“) die Aktion <b>„Mitteilung anzeigen“</b> anlegen.</p>
@@ -1988,6 +1996,10 @@
       Games.progress(i + 1, steps.length);
       const nm = $('obName');
       if (nm) nm.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); $('obNext').click(); } });
+      $('gameBody').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
+        state.gender = b.dataset.g; FX.tap();
+        $('gameBody').querySelectorAll('[data-g]').forEach(x => x.classList.toggle('on', x === b));
+      });
       $('gameBody').querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
         mode = b.dataset.mode; FX.tap();
         $('gameBody').querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x === b));
@@ -2109,7 +2121,7 @@
 
   // ================= Wochen-Quest: Boss-Kampf oder Garten =================
   const FLOWERS = ['🌷', '🌻', '🌼', '🌸', '🌺', '💐'];
-  const weekTheme = mon => hash(ymd(mon) + 'theme') % 2 ? 'boss' : 'garden';
+  const weekTheme = () => 'boss';                                   // jede Woche ein Boss
   const bossOf = mon => {
     let i = hash(ymd(mon) + 'boss') % BOSSES.length;
     const prev = hash(ymd(addDays(mon, -7)) + 'boss') % BOSSES.length;
@@ -2122,7 +2134,7 @@
     { e: '🐉', n: 'Donut-Drache', t: 'Feuerspeiender Glasur-Lord', w: 'Obst 🍓', l: ['Ich speie Zuckerguss! 🍩🔥', 'Ein Loch in der Mitte – wie in deiner Disziplin!', 'Streusel für alle!'] },
     { e: '🗿', n: 'Schoko-Golem', t: 'Massiver Kakaoklotz', w: 'Proteindrinks 💪', l: ['70 % Kakao, 100 % Versuchung 🍫', 'Bröckel… ich halt das aus!', 'Ich schmelze nicht. Du schon.'] },
     { e: '👾', n: 'Muffin-Monster', t: 'Krümelnder Küchenschreck', w: 'Ehrlichkeit 🤞', l: ['Krümel überall! Muhaha 🧁', 'Ich wohn in deiner Bäckerei!', 'Muffin ist Frühstück. Glaub mir.'] },
-    { e: '🤡', n: 'Bonbon-Baron', t: 'Klebriger Zirkusdirektor', w: 'Zähneputzen 🪥', l: ['Willkommen im Zuckerzirkus! 🎪', 'Ein Bonbon für die Dame?', 'Manege frei für Karies!'] },
+    { e: '🤡', n: 'Bonbon-Baron', t: 'Klebriger Zirkusdirektor', w: 'Zähneputzen 🪥', l: ['Willkommen im Zuckerzirkus! 🎪', '{Ein Bonbon für die Dame?|Ein Bonbon für den Herrn?|Ein Bonbon gefällig?}', 'Manege frei für Karies!'] },
     { e: '🧛', n: 'Graf Zuckula', t: 'Saugt dir die Disziplin aus', w: 'Früh ins Bett 🛌', l: ['Ich will dein… Zuckerwasser! 🧛', 'Bei Nacht wird genascht!', 'Muahaha – Mitternachtssnack!'] },
     { e: '🦖', n: 'Lolli-Saurus', t: 'Urzeit-Lutscher-Echse', w: 'Gemüse-Sticks 🥕', l: ['RAWR! Gib Lolli! 🍭', 'Ich bin 65 Millionen Jahre süß!', 'Kleine Ärmchen, großer Hunger!'] },
     { e: '🧟', n: 'Zucker-Zombie', t: 'Untoter Süßigkeiten-Junkie', w: 'Ausschlafen 😴', l: ['Zuuuucker… Zuuuucker… 🍬', 'Ich will deine Schokolade… äh, dein Gehirn', 'Schlurf, schlurf, Naschschublade…'] },
@@ -2218,7 +2230,7 @@
     if (hits >= 1) return (b.l || []).concat(['Pff, das war nur ein Kratzer 😤', 'Glück gehabt. Heute Abend krieg ich dich!', 'Eine Cola, nur eine… komm schon 🥤']);
     return ['Zucker ist Liebe! 😈', 'Diese Woche gehört MIR!', 'Ich hab Schokolade dabei… 🍫😏', 'Einhorny? Lächerlich 😂'].concat(b.l || []);
   }
-  const UNI_VS = ['Nicht mit mir, {b}! 🦄⚔️', 'Regenbogen-Strahl! 🌈💥', 'Heute Abend gibt\'s den nächsten Treffer!', 'Halt die Klappe, {b} 😤', 'Dein Zucker zieht hier nicht, Digga 💅'];
+  const UNI_VS = ['Nicht mit mir, {b}! 🦄⚔️', 'Regenbogen-Strahl! 🌈💥', 'Heute Abend gibt\'s den nächsten Treffer!', 'Halt die Klappe, {b} 😤', '{Dein Zucker zieht hier nicht, Digga 💅|Dein Zucker zieht hier nicht, Digga 😎|Dein Zucker zieht hier nicht, Digga ✨}'];
   function bossPoke(b, r, hits) {
     const be = $('qBoss'), ub = $('uniBody');
     if (!be || !ub) return;
@@ -2454,6 +2466,7 @@
     if (id === 'setSatBonus') state.satBonus = Number(v.replace(',', '.')) || 0;
     if (id === 'setPayout') state.payout = v.trim();
     if (id === 'setGoalMode') state.goalMode = v;
+    if (id === 'setGender') { state.gender = v; lastMood = null; }
     if (id === 'setStart') { if (!v) return render(); state.startDate = ymd(mondayOf(parse(v))); }
     if (id === 'setGebaeck') state.gebaeck = $(id).checked;
     if (id === 'setGebaeckStart' || id === 'setGebaeckEnd') {
@@ -2466,7 +2479,7 @@
     if (id === 'setPrize') state.prizeMode = v || undefined;
     save(); render(); toast('Gespeichert ✓');
   }
-  ['setName', 'setDebt', 'setPerWeek', 'setSatBonus', 'setPayout', 'setGoalMode', 'setStart', 'setGebaeck', 'setGebaeckStart', 'setGebaeckEnd', 'setMode', 'setRitual', 'setPrize']
+  ['setName', 'setDebt', 'setPerWeek', 'setSatBonus', 'setPayout', 'setGoalMode', 'setGender', 'setStart', 'setGebaeck', 'setGebaeckStart', 'setGebaeckEnd', 'setMode', 'setRitual', 'setPrize']
     .forEach(id => $(id).addEventListener('change', () => saveField(id)));
   $('copyBackup').onclick = async () => {
     const txt = JSON.stringify(state);

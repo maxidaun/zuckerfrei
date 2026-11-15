@@ -2,7 +2,9 @@
 // Alle laufen im Vollbild-Overlay #game. Die App übergibt einen Kontext (ctx) und bekommt Werte zurück.
 (() => {
   const $ = id => document.getElementById(id);
-  const pick = a => a[Math.floor(Math.random() * a.length)];
+  // Ansprache: "{weiblich|männlich|neutral}" in Texten je nach Einstellung auflösen
+  const gtx = str => str.replace(/\{([^{}|]*)\|([^{}|]*)\|([^{}|]*)\}/g, (_, f, m, n) => window.zfGender === 'f' ? f : window.zfGender === 'm' ? m : n);
+  const pick = a => { const v = a[Math.floor(Math.random() * a.length)]; return typeof v === 'string' ? gtx(v) : v; };
   const rnd = (a, b) => a + Math.random() * (b - a);
   const cap = (el, ev) => { try { el.setPointerCapture(ev.pointerId); } catch (e) {} };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -92,8 +94,8 @@
   const label = (c, v) => c.choice ? (v <= c.limit ? `0–${c.limit}` : `${c.limit + 1}+`) : v >= 5 ? '5+' : v;
   const options = c => c.choice ? c.choice.map(o => ({ v: o.v, t: o.label })) : [0, 1, 2, 3, 4, 5].map(v => ({ v, t: v === 5 ? '5+' : String(v) }));
 
-  const REACT_OK = ['Ehrenfrau 💅', 'Sauber! ✨', 'Stark 💪', 'Zucker? Nie gehört 😎', 'Slay 💅', 'So muss das!', 'Bombe! 💣', 'Läuft 😎',
-    'Zucker ist so letztes Jahr 💅', 'Die Haribo-Aktie fällt 📉😎', 'Die Gummibärchen weinen gerade 🐻😭', 'Zuckerfrei und trotzdem süß 😏'];
+  const REACT_OK = ['{Ehrenfrau 💅|Ehrenmann 💪|Ehrenmensch ✨}', 'Sauber! ✨', 'Stark 💪', 'Zucker? Nie gehört 😎', '{Slay 💅|Stabil 😎|Slay ✨}', 'So muss das!', 'Bombe! 💣', 'Läuft 😎',
+    '{Zucker ist so letztes Jahr 💅|Zucker ist so letztes Jahr 😎|Zucker ist so letztes Jahr ✨}', 'Die Haribo-Aktie fällt 📉😎', 'Die Gummibärchen weinen gerade 🐻😭', 'Zuckerfrei und trotzdem süß 😏'];
   const REACT_KO = ['Hmm… okay 😬', 'Notiert. Ehrlich währt am längsten 🫡', 'Autsch 🙈', 'Passiert. Weiter geht\'s 💛', 'Danke für die Ehrlichkeit 🫶',
     'Uff. Die Gummibärchen feiern gerade Party 🐻🎉', 'Ich sag\'s keinem. Fast keinem. 🤐', 'Der Zuckerdämon lacht. Noch. 😈', 'Okay, Naschkatze 🐱🍬'];
   const REACT_TRACK = ['Notiert 📝', 'Nice 💧', 'Gute Wahl!', 'Alles klar 👍', 'Top 👌'];
