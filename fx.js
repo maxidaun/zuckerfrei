@@ -1,53 +1,13 @@
-// Belohnungs-Effekte: Partikel-Engine (Canvas), 10 Szenen, Haptik.
+// Belohnungs-Effekte: Partikel-Engine (Canvas) und Animations-Szenen.
 (() => {
   const COLORS = ['#ff5c8a', '#ffb547', '#4cd3a0', '#5cb8ff', '#b57bff', '#ffd93d'];
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = a => a[Math.floor(Math.random() * a.length)];
 
-  // ---------- Haptik ----------
-  // iPhone: Safari kennt navigator.vibrate nicht. Ab iOS 18 löst das Umschalten eines
-  // <input type="checkbox" switch> einen kurzen haptischen Tap aus (System-Haptik muss an sein).
-  // iOS erlaubt das nur kurz nach einem echten Fingertipp – darum merken wir uns den letzten Tipp.
-  let lastGesture = 0;
-  ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(t =>
-    window.addEventListener(t, () => { lastGesture = performance.now(); }, { capture: true, passive: true }));
-  const canVibrate = typeof navigator.vibrate === 'function';
-  // Drei Techniken für den iOS-Schalter-Trick; welche auf einem Gerät wirkt, ist unterschiedlich.
-  // Die zuletzt als funktionierend bestätigte wird gespeichert (Einstellungen → Vibration testen).
-  let method = 'A';
-  try { method = localStorage.getItem('zf-haptic') || 'A'; } catch (e) {}
-  function makeSwitch() {
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.setAttribute('switch', '');
-    return input;
-  }
-  const METHODS = {
-    // A: Label im <head>, unsichtbar, anklicken (verbreitetes Muster)
-    A() { const l = document.createElement('label'); l.ariaHidden = 'true'; l.style.display = 'none'; l.appendChild(makeSwitch()); document.head.appendChild(l); l.click(); l.remove(); },
-    // B: sichtbar im <body>, aber winzig und durchsichtig (manche iOS-Versionen ignorieren display:none)
-    B() { const l = document.createElement('label'); l.ariaHidden = 'true'; l.style.cssText = 'position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:.01;overflow:hidden;z-index:-1';
-          l.appendChild(makeSwitch()); document.body.appendChild(l); l.click(); setTimeout(() => l.remove(), 50); },
-    // C: dauerhafter Schalter im <body>, direkt das Eingabefeld umschalten
-    C() { let i = document.getElementById('zfHapticSwitch');
-          if (!i) { i = makeSwitch(); i.id = 'zfHapticSwitch'; i.tabIndex = -1; i.ariaHidden = 'true';
-                    i.style.cssText = 'position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:.01;z-index:-1'; document.body.appendChild(i); }
-          i.click(); }
-  };
-  function tap(m) {
-    if (canVibrate) { try { navigator.vibrate(18); } catch (e) {} return; }
-    try { (METHODS[m] || METHODS[method] || METHODS.A)(); } catch (e) {}
-  }
-  function setMethod(m) { method = m; try { localStorage.setItem('zf-haptic', m); } catch (e) {} }
-
-  // Muster: erster Tap sofort, weitere nur solange iOS den Tipp noch als "frisch" ansieht
-  function haptic(times) {
-    (times || [0]).forEach(t => {
-      if (!t) return tap();
-      if (canVibrate) return setTimeout(tap, t);
-      setTimeout(() => { if (performance.now() - lastGesture < 1000) tap(); }, Math.min(t, 900));
-    });
-  }
+  // Keine Vibration: iPhone-Web-Apps unterstützen sie nicht. tap/haptic bleiben als leere Funktionen,
+  // damit die vielen Aufrufstellen nicht angefasst werden müssen.
+  const tap = () => {};
+  const haptic = () => {};
 
   // ---------- Partikel-Engine ----------
   const cv = document.createElement('canvas');
@@ -444,5 +404,5 @@
     for (let i = 0; i < n; i++) setTimeout(() => add({ x: x + rnd(10, w - 10), y: y + rnd(5, h), vx: 0, vy: rnd(-.3, -.1), g: 0, drag: 1,
       shape: 'emoji', emoji: pick(['✨', '⭐', '✦']), size: rnd(9, 15), life: 70, twinkle: true, flutter: false, vr: 0, rot: 0 }), rnd(0, 600));
   }
-  window.FX = { setHapticMethod: setMethod, hapticMethod: () => method, canVibrate, SCENES, SAD, play, clear, megaUnicorns, sparkle, twinkle, tap, haptic, firework, rain };
+  window.FX = { SCENES, SAD, play, clear, megaUnicorns, sparkle, twinkle, tap, haptic, firework, rain };
 })();
