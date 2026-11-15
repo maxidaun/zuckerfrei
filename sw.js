@@ -1,5 +1,5 @@
 // Offline-Cache. Bei Änderungen an der App VERSION hochzählen.
-const VERSION = 'zuckerfrei-v52';
+const VERSION = 'zuckerfrei-v53';
 const FILES = ['./', 'index.html', 'fx.js', 'games.js', 'games.css', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

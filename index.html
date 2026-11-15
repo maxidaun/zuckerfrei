@@ -571,8 +571,13 @@
       <details class="set-group">
         <summary>🧪 Ausprobieren</summary>
         <div class="set-note">Nur zum Anschauen – hier wird nichts gespeichert oder gutgeschrieben.</div>
-        <button class="small" id="hapticTest" style="margin-top:12px">📳 Vibration testen</button>
-        <div class="set-note" id="hapticNote">iPhone: braucht iOS 18+ und „System-Haptik“ (Einstellungen → Töne &amp; Haptik).</div>
+        <div class="field">📳 Vibration testen <small>(nacheinander tippen – welcher Knopf vibriert?)</small>
+          <div class="row" style="margin-top:4px">
+            <button class="small" data-hap="A">Test A</button><button class="small" data-hap="B">Test B</button><button class="small" data-hap="C">Test C</button>
+          </div>
+          <div class="set-note" id="hapticNote">Vibriert einer? Dann diesen nochmal tippen und „✓ Der klappt“ wählen. iPhone: iOS 18+ und „System-Haptik“ (Einstellungen → Töne &amp; Haptik) nötig.</div>
+          <div class="row" id="hapticPick" hidden><button class="small" id="hapticYes">✓ Der klappt</button></div>
+        </div>
         <div class="field">Check-ins, Belohnungen &amp; Rituale<div class="fx-grid" id="modeList"></div></div>
         <div class="field">Animationen<div class="fx-grid" id="fxList"></div></div>
       </details>
@@ -2539,12 +2544,14 @@
   $('debtMini').onclick = () => { FX.tap(); showTab('Progress'); };
   // Tipps nur auf Bedarf
   $('sheetHelp').onclick = () => { $('sheetHow').hidden = !$('sheetHow').hidden; $('sheetHelp').classList.toggle('on', !$('sheetHow').hidden); FX.tap(); };
-  $('hapticTest').onclick = () => {
-    FX.tap();
-    $('hapticNote').textContent = typeof navigator.vibrate === 'function'
-      ? 'Vibration ausgelöst (Android/Browser mit Vibrations-Unterstützung).'
-      : 'Tap ausgelöst – gespürt? Wenn nicht: iOS 18+ und „System-Haptik“ unter Einstellungen → Töne & Haptik prüfen.';
-  };
+  let hapLast = null;
+  document.querySelectorAll('[data-hap]').forEach(b => b.onclick = () => {
+    hapLast = b.dataset.hap;
+    FX.setHapticMethod(hapLast); FX.tap();
+    $('hapticPick').hidden = false;
+    $('hapticNote').textContent = FX.canVibrate ? 'Vibration ausgelöst (Gerät unterstützt Vibration direkt).' : `Test ${hapLast} ausgelöst – gespürt? Dann „✓ Der klappt“.`;
+  });
+  $('hapticYes').onclick = () => { if (hapLast) { FX.setHapticMethod(hapLast); toast(`📳 Vibration ${hapLast} ist jetzt aktiv`); FX.tap(); } };
   $('vAdd').onclick = () => { addVoucher($('vNew').value); $('vNew').value = ''; };
   $('vNew').addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); addVoucher($('vNew').value); $('vNew').value = ''; $('vNew').blur(); } });
   // ================= Gestensteuerung =================

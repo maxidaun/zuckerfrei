@@ -12,21 +12,34 @@
   ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(t =>
     window.addEventListener(t, () => { lastGesture = performance.now(); }, { capture: true, passive: true }));
   const canVibrate = typeof navigator.vibrate === 'function';
-  function tap() {
-    if (canVibrate) { try { navigator.vibrate(18); } catch (e) {} return; }
-    try {
-      const label = document.createElement('label');
-      label.ariaHidden = 'true';
-      label.style.display = 'none';
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.setAttribute('switch', '');
-      label.appendChild(input);
-      document.head.appendChild(label);
-      label.click();
-      document.head.removeChild(label);
-    } catch (e) {}
+  // Drei Techniken für den iOS-Schalter-Trick; welche auf einem Gerät wirkt, ist unterschiedlich.
+  // Die zuletzt als funktionierend bestätigte wird gespeichert (Einstellungen → Vibration testen).
+  let method = 'A';
+  try { method = localStorage.getItem('zf-haptic') || 'A'; } catch (e) {}
+  function makeSwitch() {
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.setAttribute('switch', '');
+    return input;
   }
+  const METHODS = {
+    // A: Label im <head>, unsichtbar, anklicken (verbreitetes Muster)
+    A() { const l = document.createElement('label'); l.ariaHidden = 'true'; l.style.display = 'none'; l.appendChild(makeSwitch()); document.head.appendChild(l); l.click(); l.remove(); },
+    // B: sichtbar im <body>, aber winzig und durchsichtig (manche iOS-Versionen ignorieren display:none)
+    B() { const l = document.createElement('label'); l.ariaHidden = 'true'; l.style.cssText = 'position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:.01;overflow:hidden;z-index:-1';
+          l.appendChild(makeSwitch()); document.body.appendChild(l); l.click(); setTimeout(() => l.remove(), 50); },
+    // C: dauerhafter Schalter im <body>, direkt das Eingabefeld umschalten
+    C() { let i = document.getElementById('zfHapticSwitch');
+          if (!i) { i = makeSwitch(); i.id = 'zfHapticSwitch'; i.tabIndex = -1; i.ariaHidden = 'true';
+                    i.style.cssText = 'position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:.01;z-index:-1'; document.body.appendChild(i); }
+          i.click(); }
+  };
+  function tap(m) {
+    if (canVibrate) { try { navigator.vibrate(18); } catch (e) {} return; }
+    try { (METHODS[m] || METHODS[method] || METHODS.A)(); } catch (e) {}
+  }
+  function setMethod(m) { method = m; try { localStorage.setItem('zf-haptic', m); } catch (e) {} }
+
   // Muster: erster Tap sofort, weitere nur solange iOS den Tipp noch als "frisch" ansieht
   function haptic(times) {
     (times || [0]).forEach(t => {
@@ -431,5 +444,5 @@
     for (let i = 0; i < n; i++) setTimeout(() => add({ x: x + rnd(10, w - 10), y: y + rnd(5, h), vx: 0, vy: rnd(-.3, -.1), g: 0, drag: 1,
       shape: 'emoji', emoji: pick(['✨', '⭐', '✦']), size: rnd(9, 15), life: 70, twinkle: true, flutter: false, vr: 0, rot: 0 }), rnd(0, 600));
   }
-  window.FX = { SCENES, SAD, play, clear, megaUnicorns, sparkle, twinkle, tap, haptic, firework, rain };
+  window.FX = { setHapticMethod: setMethod, hapticMethod: () => method, canVibrate, SCENES, SAD, play, clear, megaUnicorns, sparkle, twinkle, tap, haptic, firework, rain };
 })();
